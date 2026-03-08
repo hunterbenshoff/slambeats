@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>slambeats.kill</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nosifer&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:    #e63000;
+      --blood:  #cc0000;
+      --muted:  #666;
+      --sub:    #999;
+      --card:   rgba(4,4,12,0.92);
+      --cborder: rgba(30,30,60,0.55);
+    }
+
+    body {
+      background-color: #000000;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      padding-top: 108px;
+    }
+
+    /* ── Pixel fire canvas ───────────────────────────────────── */
+    #fire-canvas {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: 100vw;
+      height: 300px;
+      z-index: 2;
+      pointer-events: none;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* ── Site header ─────────────────────────────────────────── */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 13px 24px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      background: rgba(2,2,8,0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(20,20,50,0.7);
+      z-index: 20;
+      overflow: visible;
+    }
+
+    /* ── Drip wrap (shared for logo + date) ──────────────────── */
+    .drip-wrap {
+      position: relative;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .drip-container {
+      position: absolute;
+      top: 100%; left: 0;
+      width: 100%; height: 60px;
+      pointer-events: none;
+      overflow: visible;
+      z-index: 22;
+    }
+    .drip {
+      position: absolute; top: 0;
+      background: #990000;
+      border-radius: 0 0 50% 50%;
+      transform-origin: top center;
+      box-shadow: 0 0 4px rgba(140,0,0,0.5);
+    }
+    @keyframes drip-grow {
+      0%   { height: 2px;  opacity: 1; }
+      70%  { height: var(--drip-height); opacity: 1; }
+      85%  { height: calc(var(--drip-height) + 6px); opacity: 1; }
+      100% { height: calc(var(--drip-height) + 4px); opacity: 0; }
+    }
+    @keyframes drop-fall {
+      0%   { transform: translateY(0)    scale(1);   opacity: 1; }
+      100% { transform: translateY(28px) scale(0.4); opacity: 0; }
+    }
+
+    /* ── Nosifer shared ──────────────────────────────────────── */
+    .nosifer-text {
+      font-family: 'Nosifer', cursive;
+      color: #cc0000;
+      text-shadow:
+        0 0 10px rgba(180,0,0,0.65),
+        0 2px 4px rgba(0,0,0,0.95);
+      filter: drop-shadow(0 4px 6px rgba(180,0,0,0.35));
+      display: inline-block;
+      line-height: 1.2;
+    }
+    .logo-text { font-size: 22px; letter-spacing: 2px; }
+    .date-text  { font-size: 13px; letter-spacing: 1px; text-align: right; }
+
+    /* ── Tab navigation ──────────────────────────────────────── */
+    .tab-nav {
+      position: fixed;
+      top: 57px; left: 0; right: 0;
+      z-index: 19;
+      display: flex;
+      background: rgba(2,2,8,0.97);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(20,20,50,0.6);
+      padding: 0 16px;
+    }
+    .tab-btn {
+      background: none; border: none;
+      color: var(--muted);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      padding: 13px 18px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover  { color: #cc8855; }
+    .tab-btn.active { color: var(--red); border-bottom-color: var(--red); }
+
+    /* ── Tab panels ──────────────────────────────────────────── */
+    .tab-panel { max-width: 540px; margin: 0 auto; padding: 24px 16px 280px; position: relative; z-index: 5; }
+    .tab-panel.hidden { display: none; }
+
+    /* ── Album card (today) ──────────────────────────────────── */
+    .album-card {
+      background: var(--card);
+      border: 1px solid var(--cborder);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(4px);
+    }
+
+    /* ── Artwork ─────────────────────────────────────────────── */
+    .artwork-wrap {
+      width: 100%; aspect-ratio: 1;
+      background: #1a1008; border-radius: 10px;
+      overflow: hidden; margin-bottom: 20px; position: relative;
+    }
+    .artwork-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .artwork-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 80px;
+    }
+
+    /* ── Album info ──────────────────────────────────────────── */
+    .album-title  { font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 6px; }
+    .album-artist { font-size: 16px; color: var(--sub); margin-bottom: 12px; }
+    .album-meta   { display: flex; gap: 8px; align-items: center; margin-bottom: 24px; }
+    .tag {
+      background: var(--red); color: #fff;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 3px;
+    }
+    .year { font-size: 13px; color: var(--muted); }
+
+    /* ── Listen button ───────────────────────────────────────── */
+    .listen-btn {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; width: 100%; padding: 16px;
+      border-radius: 10px; border: none;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      transition: opacity 0.15s, transform 0.1s;
+      margin-bottom: 14px;
+    }
+    .listen-btn:hover  { opacity: 0.88; transform: translateY(-1px); }
+    .listen-btn:active { transform: translateY(0); }
+    .btn-apple   { background: #fc3c44; color: #fff; }
+    .btn-spotify { background: #1db954; color: #fff; }
+    .btn-youtube { background: #ff0000; color: #fff; }
+    .btn-icon { width: 22px; height: 22px; flex-shrink: 0; }
+
+    /* ── Service picker ──────────────────────────────────────── */
+    .picker-label {
+      font-size: 11px; color: var(--muted); text-align: center;
+      margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase;
+    }
+    .service-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+      margin-bottom: 24px;
+    }
+    .service-btn {
+      background: rgba(4,4,14,0.88);
+      border: 1px solid rgba(30,30,60,0.5);
+      border-radius: 10px; padding: 14px 8px;
+      cursor: pointer; display: flex;
+      flex-direction: column; align-items: center; gap: 8px;
+      font-size: 11px; color: var(--sub); font-weight: 500;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .service-btn:hover { border-color: var(--red); background: rgba(30,4,4,0.95); }
+    .service-btn svg { width: 30px; height: 30px; }
+    .change-service { text-align: center; margin-top: 6px; }
+    .change-service button {
+      background: none; border: none; color: var(--muted);
+      font-size: 11px; cursor: pointer;
+      text-decoration: underline; text-underline-offset: 3px;
+    }
+    .change-service button:hover { color: var(--sub); }
+
+    /* ── Skull rating ────────────────────────────────────────── */
+    .rating-section {
+      border-top: 1px solid rgba(30,30,60,0.5);
+      padding-top: 20px; margin-top: 8px;
+    }
+    .rating-label {
+      font-size: 10px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .star-row { display: flex; gap: 4px; margin-bottom: 8px; }
+    .star-btn {
+      background: none; border: none;
+      font-size: 28px; color: #1a1a22;
+      cursor: pointer; padding: 0; line-height: 1;
+      transition: color 0.12s, transform 0.12s, text-shadow 0.12s;
+      filter: drop-shadow(0 0 0px transparent);
+    }
+    .star-btn:hover      { transform: scale(1.2); }
+    .star-btn.lit        {
+      color: #7a0000;
+      filter: drop-shadow(0 0 4px rgba(180,0,0,0.5));
+    }
+    .star-btn.saved      {
+      color: #cc0000;
+      filter: drop-shadow(0 0 6px rgba(200,0,0,0.7));
+    }
+    .rating-sublabel {
+      font-size: 11px; color: var(--muted); min-height: 16px;
+    }
+
+    /* ── States ──────────────────────────────────────────────── */
+    #view-pick  { display: none; }
+    #view-listen { display: none; }
+
+    /* ── Archive panel ───────────────────────────────────────── */
+    .panel-heading {
+      font-size: 10px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 16px; padding-bottom: 10px;
+      border-bottom: 1px solid rgba(30,30,60,0.5);
+    }
+    .archive-entry {
+      background: var(--card);
+      border: 1px solid var(--cborder);
+      border-radius: 10px; padding: 13px 16px;
+      margin-bottom: 9px;
+      display: flex; gap: 14px; align-items: center;
+    }
+    .archive-date {
+      font-size: 11px; color: var(--muted);
+      white-space: nowrap; flex-shrink: 0; min-width: 78px;
+    }
+    .archive-info { flex: 1; min-width: 0; }
+    .archive-title  { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .archive-artist { font-size: 12px; color: var(--sub); margin-top: 2px; }
+    .archive-genre  { font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #880000; margin-top: 3px; }
+    .archive-stars  { font-size: 15px; color: #cc0000; flex-shrink: 0; letter-spacing: 2px; filter: drop-shadow(0 0 4px rgba(180,0,0,0.6)); }
+
+    /* ── Ratings panel ───────────────────────────────────────── */
+    .ratings-empty {
+      text-align: center; color: var(--muted);
+      padding: 48px 0; font-size: 13px;
+    }
+    .rating-entry {
+      background: var(--card);
+      border: 1px solid var(--cborder);
+      border-radius: 10px; padding: 14px 16px;
+      margin-bottom: 9px;
+      display: flex; gap: 16px; align-items: center;
+    }
+    .re-stars { font-size: 22px; color: #cc0000; flex-shrink: 0; filter: drop-shadow(0 0 5px rgba(200,0,0,0.65)); }
+    .re-info  { flex: 1; min-width: 0; }
+    .re-album  { font-size: 14px; font-weight: 700; }
+    .re-artist { font-size: 12px; color: var(--sub); margin-top: 2px; }
+    .re-meta   { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: 0.5px; }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    .footer {
+      text-align: center; font-size: 11px;
+      color: rgba(80,80,100,0.35); padding-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="site-header">
+  <div class="drip-wrap">
+    <span class="nosifer-text logo-text">slambeats.kill</span>
+    <div class="drip-container" id="logo-drip-container"></div>
+  </div>
+  <div class="drip-wrap">
+    <span class="nosifer-text date-text" id="date-display"></span>
+    <div class="drip-container" id="date-drip-container"></div>
+  </div>
+</header>
+
+<!-- ── Tab Nav ── -->
+<nav class="tab-nav">
+  <button class="tab-btn active" id="tab-today"   onclick="switchTab('today')">Today</button>
+  <button class="tab-btn"        id="tab-archive" onclick="switchTab('archive')">Archive</button>
+  <button class="tab-btn"        id="tab-ratings" onclick="switchTab('ratings')">Ratings</button>
+</nav>
+
+<!-- ════════════════ TODAY PANEL ════════════════ -->
+<div class="tab-panel" id="panel-today">
+  <div class="album-card">
+
+    <!-- Artwork -->
+    <div class="artwork-wrap">
+      <div class="artwork-placeholder" id="artwork-placeholder">🎵</div>
+      <img id="artwork-img" style="display:none" alt="Album artwork">
+    </div>
+
+    <!-- Info -->
+    <h1 class="album-title"  id="album-title"></h1>
+    <p  class="album-artist" id="album-artist"></p>
+    <div class="album-meta">
+      <span class="tag"  id="album-genre"></span>
+      <span class="year" id="album-year"></span>
+    </div>
+
+    <!-- Pick service -->
+    <div id="view-pick">
+      <p class="picker-label">Where do you listen?</p>
+      <div class="service-grid">
+
+        <button class="service-btn" onclick="pickService('apple')">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="7" fill="#fc3c44"/>
+            <path d="M21.5 9.5H13v10.25c-.42-.17-.88-.25-1.5-.25-1.93 0-3.5 1.34-3.5 3s1.57 3 3.5 3 3.5-1.34 3.5-3V12.5h5V9.5z" fill="#fff"/>
+          </svg>
+          Apple Music
+        </button>
+
+        <button class="service-btn" onclick="pickService('spotify')">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="16" fill="#1db954"/>
+            <path d="M22.5 17.5c-3.5-2-8.5-2.5-12-1.5-.5.2-1-.1-1.2-.6-.2-.5.1-1 .6-1.2 4-.9 9.5-.4 13.2 1.7.5.3.6.9.3 1.4-.3.4-.9.5-1.4.2zm-.8 3c-.3.4-.8.5-1.2.3-2.9-1.7-7.2-2.2-10.6-1.2-.4.1-.9-.1-1-.5-.1-.4.1-.9.5-1 3.8-1.1 8.5-.6 11.8 1.3.4.3.5.8.3 1.2zm-1.2 2.8c-.2.3-.6.4-1 .2-2.5-1.5-5.6-1.9-9.3-1-.3.1-.7-.1-.8-.5-.1-.3.1-.7.5-.8 4-.9 7.5-.5 10.3 1.2.4.2.5.6.3.9z" fill="#fff"/>
+          </svg>
+          Spotify
+        </button>
+
+        <button class="service-btn" onclick="pickService('youtube')">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="16" fill="#ff0000"/>
+            <circle cx="16" cy="16" r="7" fill="#fff"/>
+            <circle cx="16" cy="16" r="4" fill="#ff0000"/>
+            <path d="M14 13.5l5 2.5-5 2.5V13.5z" fill="#fff"/>
+          </svg>
+          YouTube Music
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Listen on service -->
+    <div id="view-listen">
+      <a id="listen-link" class="listen-btn" target="_blank" rel="noopener">
+        <svg class="btn-icon" id="btn-icon" viewBox="0 0 24 24" fill="currentColor"></svg>
+        <span id="btn-label">Listen Now</span>
+      </a>
+      <div class="change-service">
+        <button onclick="resetService()">Change streaming service</button>
+      </div>
+    </div>
+
+    <!-- Rating section -->
+    <div class="rating-section">
+      <p class="rating-label">Rate Today's Album</p>
+      <div class="star-row" id="star-row">
+        <button class="star-btn" data-val="1" onclick="setRating(1)">☠</button>
+        <button class="star-btn" data-val="2" onclick="setRating(2)">☠</button>
+        <button class="star-btn" data-val="3" onclick="setRating(3)">☠</button>
+        <button class="star-btn" data-val="4" onclick="setRating(4)">☠</button>
+        <button class="star-btn" data-val="5" onclick="setRating(5)">☠</button>
+      </div>
+      <p class="rating-sublabel" id="rating-sublabel"></p>
+    </div>
+
+  </div><!-- /album-card -->
+  <p class="footer">A new album every day &nbsp;·&nbsp; slambeats.kill</p>
+</div>
+
+<!-- ════════════════ ARCHIVE PANEL ════════════════ -->
+<div class="tab-panel hidden" id="panel-archive">
+  <p class="panel-heading" id="archive-heading">Previous Albums</p>
+  <div id="archive-list"></div>
+</div>
+
+<!-- ════════════════ RATINGS PANEL ════════════════ -->
+<div class="tab-panel hidden" id="panel-ratings">
+  <p class="panel-heading">My Ratings</p>
+  <div id="ratings-list"></div>
+</div>
+
+<canvas id="fire-canvas"></canvas>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// ALBUM LIST  (must match daily_album.js exactly)
+// ══════════════════════════════════════════════════════════════
+const ALBUMS = [
+    ["Black Sabbath", "Black Sabbath", 1970, "Classic Metal"],
+    ["Paranoid", "Black Sabbath", 1970, "Classic Metal"],
+    ["Master of Reality", "Black Sabbath", 1971, "Classic Metal"],
+    ["Sabbath Bloody Sabbath", "Black Sabbath", 1973, "Classic Metal"],
+    ["Heaven and Hell", "Black Sabbath", 1980, "Classic Metal"],
+    ["Mob Rules", "Black Sabbath", 1981, "Classic Metal"],
+    ["British Steel", "Judas Priest", 1980, "Classic Metal"],
+    ["Screaming for Vengeance", "Judas Priest", 1982, "Classic Metal"],
+    ["Defenders of the Faith", "Judas Priest", 1984, "Classic Metal"],
+    ["Painkiller", "Judas Priest", 1990, "Classic Metal"],
+    ["Sad Wings of Destiny", "Judas Priest", 1976, "Classic Metal"],
+    ["The Number of the Beast", "Iron Maiden", 1982, "Classic Metal"],
+    ["Piece of Mind", "Iron Maiden", 1983, "Classic Metal"],
+    ["Powerslave", "Iron Maiden", 1984, "Classic Metal"],
+    ["Somewhere in Time", "Iron Maiden", 1986, "Classic Metal"],
+    ["Seventh Son of a Seventh Son", "Iron Maiden", 1988, "Classic Metal"],
+    ["Killers", "Iron Maiden", 1981, "Classic Metal"],
+    ["Rising", "Rainbow", 1976, "Classic Metal"],
+    ["Long Live Rock 'n' Roll", "Rainbow", 1978, "Classic Metal"],
+    ["Holy Diver", "Dio", 1983, "Classic Metal"],
+    ["The Last in Line", "Dio", 1984, "Classic Metal"],
+    ["Ace of Spades", "Motorhead", 1980, "Classic Metal"],
+    ["Overkill", "Motorhead", 1979, "Classic Metal"],
+    ["Bomber", "Motorhead", 1979, "Classic Metal"],
+    ["No Sleep 'til Hammersmith", "Motorhead", 1981, "Classic Metal"],
+    ["Wheels of Steel", "Saxon", 1980, "Classic Metal"],
+    ["Strong Arm of the Law", "Saxon", 1980, "Classic Metal"],
+    ["Melissa", "Mercyful Fate", 1983, "Classic Metal"],
+    ["Don't Break the Oath", "Mercyful Fate", 1984, "Classic Metal"],
+    ["Kill 'Em All", "Metallica", 1983, "Thrash Metal"],
+    ["Ride the Lightning", "Metallica", 1984, "Thrash Metal"],
+    ["Master of Puppets", "Metallica", 1986, "Thrash Metal"],
+    ["...And Justice for All", "Metallica", 1988, "Thrash Metal"],
+    ["Metallica (Black Album)", "Metallica", 1991, "Thrash Metal"],
+    ["Peace Sells... but Who's Buying?", "Megadeth", 1986, "Thrash Metal"],
+    ["Rust in Peace", "Megadeth", 1990, "Thrash Metal"],
+    ["Killing Is My Business...", "Megadeth", 1985, "Thrash Metal"],
+    ["Countdown to Extinction", "Megadeth", 1992, "Thrash Metal"],
+    ["South of Heaven", "Slayer", 1988, "Thrash Metal"],
+    ["Reign in Blood", "Slayer", 1986, "Thrash Metal"],
+    ["Seasons in the Abyss", "Slayer", 1990, "Thrash Metal"],
+    ["Hell Awaits", "Slayer", 1985, "Thrash Metal"],
+    ["Show No Mercy", "Slayer", 1983, "Thrash Metal"],
+    ["Spreading the Disease", "Anthrax", 1985, "Thrash Metal"],
+    ["Among the Living", "Anthrax", 1987, "Thrash Metal"],
+    ["Persistence of Time", "Anthrax", 1990, "Thrash Metal"],
+    ["Bonded by Blood", "Exodus", 1985, "Thrash Metal"],
+    ["Fabulous Disaster", "Exodus", 1989, "Thrash Metal"],
+    ["The Legacy", "Testament", 1987, "Thrash Metal"],
+    ["Practice What You Preach", "Testament", 1989, "Thrash Metal"],
+    ["The New Order", "Testament", 1988, "Thrash Metal"],
+    ["Feel the Fire", "Overkill", 1985, "Thrash Metal"],
+    ["Taking Over", "Overkill", 1987, "Thrash Metal"],
+    ["The Years of Decay", "Overkill", 1989, "Thrash Metal"],
+    ["Horrorscope", "Overkill", 1991, "Thrash Metal"],
+    ["Darkness Descends", "Dark Angel", 1986, "Thrash Metal"],
+    ["Beneath the Remains", "Sepultura", 1989, "Thrash Metal"],
+    ["Arise", "Sepultura", 1991, "Thrash Metal"],
+    ["Chaos A.D.", "Sepultura", 1993, "Thrash Metal"],
+    ["Roots", "Sepultura", 1996, "Groove Metal"],
+    ["Schizophrenia", "Sepultura", 1987, "Thrash Metal"],
+    ["Torture", "Kreator", 2012, "Thrash Metal"],
+    ["Pleasure to Kill", "Kreator", 1986, "Thrash Metal"],
+    ["Coma of Souls", "Kreator", 1990, "Thrash Metal"],
+    ["Terrible Certainty", "Kreator", 1987, "Thrash Metal"],
+    ["Agent Orange", "Sodom", 1989, "Thrash Metal"],
+    ["Persecution Mania", "Sodom", 1987, "Thrash Metal"],
+    ["Eternal Devastation", "Destruction", 1986, "Thrash Metal"],
+    ["D.R.I. 4 of a Kind", "D.R.I.", 1988, "Crossover Thrash"],
+    ["Dealing with It!", "D.R.I.", 1985, "Crossover Thrash"],
+    ["Join the Army", "Suicidal Tendencies", 1987, "Crossover Thrash"],
+    ["How Will I Laugh Tomorrow", "Suicidal Tendencies", 1988, "Thrash Metal"],
+    ["Speak English or Die", "S.O.D.", 1985, "Crossover Thrash"],
+    ["The Ultra-Violence", "Death Angel", 1987, "Thrash Metal"],
+    ["Control and Resistance", "Watchtower", 1989, "Technical Thrash"],
+    ["Scream Bloody Gore", "Death", 1987, "Death Metal"],
+    ["Leprosy", "Death", 1988, "Death Metal"],
+    ["Spiritual Healing", "Death", 1990, "Death Metal"],
+    ["Human", "Death", 1991, "Death Metal"],
+    ["Individual Thought Patterns", "Death", 1993, "Death Metal"],
+    ["Symbolic", "Death", 1995, "Death Metal"],
+    ["The Sound of Perseverance", "Death", 1998, "Death Metal"],
+    ["Altars of Madness", "Morbid Angel", 1989, "Death Metal"],
+    ["Blessed Are the Sick", "Morbid Angel", 1991, "Death Metal"],
+    ["Covenant", "Morbid Angel", 1993, "Death Metal"],
+    ["Domination", "Morbid Angel", 1995, "Death Metal"],
+    ["Slowly We Rot", "Obituary", 1989, "Death Metal"],
+    ["Cause of Death", "Obituary", 1990, "Death Metal"],
+    ["The End Complete", "Obituary", 1992, "Death Metal"],
+    ["Left Hand Path", "Entombed", 1990, "Death Metal"],
+    ["Clandestine", "Entombed", 1991, "Death Metal"],
+    ["Wolverine Blues", "Entombed", 1993, "Death 'n' Roll"],
+    ["Like an Everflowing Stream", "Dismember", 1991, "Death Metal"],
+    ["Consuming Impulse", "Pestilence", 1989, "Death Metal"],
+    ["Effigy of the Forgotten", "Suffocation", 1991, "Brutal Death Metal"],
+    ["Pierced from Within", "Suffocation", 1995, "Brutal Death Metal"],
+    ["None So Vile", "Cryptopsy", 1996, "Brutal Death Metal"],
+    ["Nespithe", "Demilich", 1993, "Technical Death Metal"],
+    ["Unquestionable Presence", "Atheist", 1991, "Technical Death Metal"],
+    ["Focus", "Cynic", 1993, "Technical Death Metal"],
+    ["The Red in the Sky Is Ours", "At the Gates", 1992, "Melodic Death Metal"],
+    ["Slaughter of the Soul", "At the Gates", 1995, "Melodic Death Metal"],
+    ["The Gallery", "Dark Tranquillity", 1995, "Melodic Death Metal"],
+    ["The Jester Race", "In Flames", 1996, "Melodic Death Metal"],
+    ["Whoracle", "In Flames", 1997, "Melodic Death Metal"],
+    ["Colony", "In Flames", 1999, "Melodic Death Metal"],
+    ["Morningrise", "Opeth", 1996, "Progressive Death Metal"],
+    ["Still Life", "Opeth", 1999, "Progressive Death Metal"],
+    ["Blackwater Park", "Opeth", 2001, "Progressive Death Metal"],
+    ["Heartwork", "Carcass", 1993, "Melodic Death Metal"],
+    ["Necroticism", "Carcass", 1991, "Death Metal"],
+    ["Harmony Corruption", "Napalm Death", 1990, "Death Metal"],
+    ["Scum", "Napalm Death", 1987, "Grindcore"],
+    ["Severed Survival", "Autopsy", 1989, "Death Metal"],
+    ["Mental Funeral", "Autopsy", 1991, "Death Metal"],
+    ["Legion", "Deicide", 1992, "Death Metal"],
+    ["Tomb of the Mutilated", "Cannibal Corpse", 1992, "Death Metal"],
+    ["Bleeding", "Cannibal Corpse", 1994, "Death Metal"],
+    ["Kill", "Cannibal Corpse", 2006, "Death Metal"],
+    ["Violence Unimagined", "Cannibal Corpse", 2021, "Death Metal"],
+    ["De Mysteriis Dom Sathanas", "Mayhem", 1994, "Black Metal"],
+    ["Transilvanian Hunger", "Darkthrone", 1994, "Black Metal"],
+    ["A Blaze in the Northern Sky", "Darkthrone", 1992, "Black Metal"],
+    ["Under a Funeral Moon", "Darkthrone", 1993, "Black Metal"],
+    ["Panzerfaust", "Darkthrone", 1995, "Black Metal"],
+    ["Filosofem", "Burzum", 1996, "Black Metal"],
+    ["Hvis Lyset Tar Oss", "Burzum", 1994, "Black Metal"],
+    ["In the Nightside Eclipse", "Emperor", 1994, "Symphonic Black Metal"],
+    ["Anthems to the Welkin at Dusk", "Emperor", 1997, "Symphonic Black Metal"],
+    ["Pure Holocaust", "Immortal", 1993, "Black Metal"],
+    ["Battles in the North", "Immortal", 1995, "Black Metal"],
+    ["At the Heart of Winter", "Immortal", 1999, "Black Metal"],
+    ["Sons of Northern Darkness", "Immortal", 2002, "Black Metal"],
+    ["Black Metal", "Venom", 1982, "Proto-Black Metal"],
+    ["Under the Sign of the Black Mark", "Bathory", 1987, "Black Metal"],
+    ["Blood Fire Death", "Bathory", 1988, "Black/Viking Metal"],
+    ["Hammerheart", "Bathory", 1990, "Viking Metal"],
+    ["Nemesis Divina", "Satyricon", 1996, "Black Metal"],
+    ["Those of the Unlight", "Marduk", 1993, "Black Metal"],
+    ["Panzer Division Marduk", "Marduk", 1999, "Black Metal"],
+    ["Wolves in the Throne Room Two Hunters", "Wolves in the Throne Room", 2007, "Black Metal"],
+    ["Epicus Doomicus Metallicus", "Candlemass", 1986, "Doom Metal"],
+    ["Nightfall", "Candlemass", 1987, "Doom Metal"],
+    ["Ancient Dreams", "Candlemass", 1988, "Doom Metal"],
+    ["Born Too Late", "Saint Vitus", 1986, "Doom Metal"],
+    ["Day of Reckoning", "Pentagram", 1987, "Doom Metal"],
+    ["Forest of Equilibrium", "Cathedral", 1991, "Doom Metal"],
+    ["Turn Loose the Swans", "My Dying Bride", 1992, "Death/Doom Metal"],
+    ["Gothic", "Paradise Lost", 1991, "Death/Doom Metal"],
+    ["Icon", "Paradise Lost", 1993, "Doom Metal"],
+    ["Dopethrone", "Electric Wizard", 2000, "Stoner/Doom Metal"],
+    ["Come My Fanatics", "Electric Wizard", 1997, "Stoner/Doom Metal"],
+    ["Witchcult Today", "Electric Wizard", 2007, "Stoner/Doom Metal"],
+    ["Sleep's Holy Mountain", "Sleep", 1992, "Stoner/Doom Metal"],
+    ["Dopesmoker", "Sleep", 2012, "Stoner/Doom Metal"],
+    ["The Sciences", "Sleep", 2018, "Stoner/Doom Metal"],
+    ["Blessed Black Wings", "High on Fire", 2005, "Sludge Metal"],
+    ["Death Is This Communion", "High on Fire", 2007, "Sludge Metal"],
+    ["Take as Needed for Pain", "Eyehategod", 1993, "Sludge Metal"],
+    ["Dopesick", "Eyehategod", 1996, "Sludge Metal"],
+    ["Crowbar", "Crowbar", 1993, "Sludge Metal"],
+    ["Time Heals Nothing", "Crowbar", 1995, "Sludge Metal"],
+    ["Down NOLA", "Down", 1995, "Sludge Metal"],
+    ["Through Silver in Blood", "Neurosis", 1996, "Post-Metal"],
+    ["Times of Grace", "Neurosis", 1999, "Post-Metal"],
+    ["Jane Doe", "Converge", 2001, "Metalcore"],
+    ["No Heroes", "Converge", 2006, "Metalcore"],
+    ["Damaged", "Black Flag", 1981, "Hardcore Punk"],
+    ["My War", "Black Flag", 1984, "Hardcore Punk"],
+    ["Fresh Fruit for Rotting Vegetables", "Dead Kennedys", 1980, "Hardcore Punk"],
+    ["Plastic Surgery Disasters", "Dead Kennedys", 1982, "Hardcore Punk"],
+    ["Minor Threat Complete Discography", "Minor Threat", 1989, "Hardcore Punk"],
+    ["Victim in Pain", "Agnostic Front", 1984, "Hardcore Punk"],
+    ["Cause for Alarm", "Agnostic Front", 1986, "Hardcore Punk"],
+    ["The Age of Quarrel", "Cro-Mags", 1986, "Hardcore Punk"],
+    ["Best Wishes", "Cro-Mags", 1989, "Hardcore Punk"],
+    ["Hear Nothing See Nothing Say Nothing", "Discharge", 1982, "Hardcore Punk"],
+    ["Break Down the Walls", "Youth of Today", 1986, "Hardcore Punk"],
+    ["Start Today", "Gorilla Biscuits", 1989, "Hardcore Punk"],
+    ["Blood, Sweat and No Tears", "Sick of It All", 1992, "Hardcore Punk"],
+    ["Bad Brains", "Bad Brains", 1982, "Hardcore Punk"],
+    ["I Against I", "Bad Brains", 1986, "Hardcore Punk"],
+    ["Suffer", "Bad Religion", 1988, "Punk Rock"],
+    ["No Control", "Bad Religion", 1989, "Punk Rock"],
+    ["Against the Grain", "Bad Religion", 1990, "Punk Rock"],
+    ["Stranger Than Fiction", "Bad Religion", 1994, "Punk Rock"],
+    ["Milo Goes to College", "Descendents", 1982, "Hardcore Punk"],
+    ["All", "Descendents", 1987, "Hardcore Punk"],
+    ["Everything Sucks", "Descendents", 1996, "Hardcore Punk"],
+    ["Group Sex", "Circle Jerks", 1980, "Hardcore Punk"],
+    ["Satisfaction Is the Death of Desire", "Hatebreed", 1997, "Metalcore"],
+    ["Supremacy", "Hatebreed", 2006, "Metalcore"],
+    ["One with the Underdogs", "Terror", 2004, "Hardcore Punk"],
+    ["Always the Hard Way", "Terror", 2006, "Hardcore Punk"],
+    ["Keepers of the Faith", "Terror", 2010, "Hardcore Punk"],
+];
+
+// ══════════════════════════════════════════════════════════════
+// HASH + DATE UTILS
+// ══════════════════════════════════════════════════════════════
+function dateHash(str) {
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) + hash + str.charCodeAt(i)) >>> 0;
+    }
+    return hash;
+}
+
+// Unpadded hash string — MUST match daily_album.js exactly
+function hashStr(d) {
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+// Padded date key for localStorage / display (YYYY-MM-DD)
+function padKey(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getAlbumForDate(d) {
+    return ALBUMS[dateHash(hashStr(d)) % ALBUMS.length];
+}
+
+function formatDateHeader(d) {
+    // Short format for Nosifer header: "Sat Mar 7 2026"
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// ══════════════════════════════════════════════════════════════
+// STREAMING SERVICES
+// ══════════════════════════════════════════════════════════════
+const SERVICES = {
+    apple: {
+        name: 'Apple Music',
+        url: (album, artist) =>
+            `https://music.apple.com/search?term=${encodeURIComponent(album + ' ' + artist)}`,
+        icon: `<rect width="24" height="24" rx="5" fill="#fc3c44"/><path d="M16 7H9v7.75c-.32-.13-.67-.25-1-.25-1.66 0-3 1.12-3 2.5s1.34 2.5 3 2.5 3-1.12 3-2.5V9.5h4V7z" fill="#fff"/>`
+    },
+    spotify: {
+        name: 'Spotify',
+        url: (album, artist) =>
+            `https://open.spotify.com/search/${encodeURIComponent(album + ' ' + artist)}`,
+        icon: `<rect width="24" height="24" rx="12" fill="#1db954"/><path d="M17 13.1c-2.6-1.5-6.4-1.9-9-1.1-.4.1-.7-.1-.8-.4-.1-.4.1-.7.4-.8 3-.9 7.1-.5 9.9 1.3.3.2.4.7.2 1-.2.3-.5.4-.7.2zm-.6 2.3c-.2.3-.6.4-.9.2-2.2-1.3-5.4-1.7-8-1-.3.1-.7-.1-.8-.4-.1-.3.1-.7.4-.8 2.9-.8 6.4-.4 8.9 1 .3.2.4.6.2.9zm-.9 2.1c-.2.3-.5.3-.7.2-1.9-1.1-4.2-1.4-7-.8-.3.1-.5-.1-.6-.4-.1-.3.1-.5.4-.6 3-.7 5.6-.3 7.7.9.2.2.3.5.2.7z" fill="#fff"/>`
+    },
+    youtube: {
+        name: 'YouTube Music',
+        url: (album, artist) =>
+            `https://music.youtube.com/search?q=${encodeURIComponent(album + ' ' + artist)}`,
+        icon: `<rect width="24" height="24" rx="12" fill="#ff0000"/><circle cx="12" cy="12" r="5" fill="#fff"/><circle cx="12" cy="12" r="3" fill="#ff0000"/><path d="M10.5 10.5l4 1.5-4 1.5v-3z" fill="#fff"/>`
+    }
+};
+
+// ══════════════════════════════════════════════════════════════
+// ITUNES ARTWORK
+// ══════════════════════════════════════════════════════════════
+async function fetchArtwork(album, artist) {
+    try {
+        const q = encodeURIComponent(`${album} ${artist}`);
+        const res = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=10`);
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+            const albumLower = album.toLowerCase();
+            const match = data.results.find(r =>
+                r.collectionName && r.collectionName.toLowerCase().includes(albumLower.split(' ')[0])
+            ) || data.results[0];
+            if (match.artworkUrl100) {
+                return match.artworkUrl100.replace('100x100bb', '600x600bb');
+            }
+        }
+        // Artist-only fallback
+        const res2 = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=album&limit=5`);
+        const data2 = await res2.json();
+        if (data2.results && data2.results.length > 0) {
+            return data2.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+        }
+    } catch (e) {}
+    return null;
+}
+
+// ══════════════════════════════════════════════════════════════
+// RATING SYSTEM
+// ══════════════════════════════════════════════════════════════
+const RATING_PREFIX = 'slambeats_rating_';
+const RATING_DESCS  = ['', 'Not for me', 'Decent', 'Solid', 'Great', 'All-time classic'];
+
+function saveRating(val) {
+    localStorage.setItem(RATING_PREFIX + padKey(new Date()), String(val));
+}
+
+function getRatingForDate(d) {
+    return localStorage.getItem(RATING_PREFIX + padKey(d));
+}
+
+function applyStarState(rating) {
+    const r = parseInt(rating) || 0;
+    document.querySelectorAll('.star-btn').forEach(s => {
+        const v = parseInt(s.dataset.val);
+        s.classList.toggle('saved', r > 0 && v <= r);
+        s.classList.remove('lit');
+    });
+    const label = document.getElementById('rating-sublabel');
+    label.textContent = r ? `${RATING_DESCS[r]}  (${r}/5)  ·  saved ✓` : '';
+}
+
+function setRating(val) {
+    saveRating(val);
+    applyStarState(val);
+    // Refresh other panels if they're already built
+    if (!document.getElementById('panel-archive').classList.contains('hidden')) buildArchivePanel();
+    if (!document.getElementById('panel-ratings').classList.contains('hidden')) buildRatingsPanel();
+}
+
+function initStarHover() {
+    const stars = document.querySelectorAll('.star-btn');
+    stars.forEach(s => {
+        s.addEventListener('mouseenter', () => {
+            const v = parseInt(s.dataset.val);
+            stars.forEach(ss => ss.classList.toggle('lit', parseInt(ss.dataset.val) <= v));
+        });
+        s.addEventListener('mouseleave', () => {
+            stars.forEach(ss => ss.classList.remove('lit'));
+            applyStarState(getRatingForDate(new Date()));
+        });
+    });
+}
+
+// ══════════════════════════════════════════════════════════════
+// ARCHIVE PANEL
+// ══════════════════════════════════════════════════════════════
+const ARCHIVE_START = new Date('2026-03-01T12:00:00');
+
+function buildArchivePanel() {
+    const list = document.getElementById('archive-list');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const entries = [];
+    for (let d = new Date(today); d >= ARCHIVE_START; d.setDate(d.getDate() - 1)) {
+        const dd = new Date(d);
+        dd.setHours(12, 0, 0, 0);
+        if (dd.getTime() >= today.getTime()) continue; // skip today (shown in Today tab)
+
+        const [album, artist, year, genre] = getAlbumForDate(dd);
+        const rating = getRatingForDate(dd);
+        const dateStr = dd.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+        entries.push({ dateStr, album, artist, year, genre, rating });
+    }
+
+    if (entries.length === 0) {
+        list.innerHTML = '<p style="color:var(--muted);padding:32px 0;text-align:center;font-size:13px">No previous albums yet.<br>Come back tomorrow!</p>';
+        document.getElementById('archive-heading').textContent = 'Previous Albums';
+        return;
+    }
+
+    document.getElementById('archive-heading').textContent = `Previous Albums  ·  ${entries.length} days`;
+
+    list.innerHTML = entries.map(e => {
+        const stars = e.rating ? '★'.repeat(parseInt(e.rating)) : '';
+        return `
+          <div class="archive-entry">
+            <div class="archive-date">${e.dateStr}</div>
+            <div class="archive-info">
+              <div class="archive-title">${e.album}</div>
+              <div class="archive-artist">${e.artist}  ·  ${e.year}</div>
+              <div class="archive-genre">${e.genre}</div>
+            </div>
+            ${stars ? `<div class="archive-stars">${stars}</div>` : ''}
+          </div>`;
+    }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// RATINGS PANEL
+// ══════════════════════════════════════════════════════════════
+function buildRatingsPanel() {
+    const list = document.getElementById('ratings-list');
+    const ratings = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key || !key.startsWith(RATING_PREFIX)) continue;
+        const dk = key.replace(RATING_PREFIX, '');
+        const val = parseInt(localStorage.getItem(key));
+        if (!val || val < 1 || val > 5) continue;
+
+        // Reconstruct date from YYYY-MM-DD key
+        const parts = dk.split('-');
+        if (parts.length !== 3) continue;
+        const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12);
+        const [album, artist, year, genre] = getAlbumForDate(d);
+        const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+        ratings.push({ dk, dateStr, album, artist, year, genre, val });
+    }
+
+    if (ratings.length === 0) {
+        list.innerHTML = '<p class="ratings-empty">No ratings yet.<br>Rate today\'s album to get started!</p>';
+        return;
+    }
+
+    ratings.sort((a, b) => b.dk.localeCompare(a.dk));
+
+    list.innerHTML = ratings.map(r => `
+      <div class="rating-entry">
+        <div class="re-stars">${r.val}★</div>
+        <div class="re-info">
+          <div class="re-album">${r.album}</div>
+          <div class="re-artist">${r.artist}  ·  ${r.year}</div>
+          <div class="re-meta">${r.dateStr}  ·  ${RATING_DESCS[r.val]}</div>
+        </div>
+      </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ══════════════════════════════════════════════════════════════
+function switchTab(name) {
+    ['today', 'archive', 'ratings'].forEach(t => {
+        document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
+        document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
+    });
+    if (name === 'archive') buildArchivePanel();
+    if (name === 'ratings') buildRatingsPanel();
+}
+
+// ══════════════════════════════════════════════════════════════
+// SERVICE SELECTION
+// ══════════════════════════════════════════════════════════════
+function pickService(serviceKey) {
+    localStorage.setItem('dailyalbum_service', serviceKey);
+    const [album, artist] = getAlbumForDate(new Date());
+    showListenView(serviceKey, album, artist);
+    window.open(SERVICES[serviceKey].url(album, artist), '_blank');
+}
+
+function showListenView(serviceKey, album, artist) {
+    const svc = SERVICES[serviceKey];
+    document.getElementById('view-pick').style.display   = 'none';
+    document.getElementById('view-listen').style.display = 'block';
+    const btn = document.getElementById('listen-link');
+    btn.href = svc.url(album, artist);
+    btn.className = `listen-btn btn-${serviceKey}`;
+    document.getElementById('btn-icon').innerHTML = svc.icon;
+    document.getElementById('btn-label').textContent = `Listen on ${svc.name}`;
+}
+
+function resetService() {
+    localStorage.removeItem('dailyalbum_service');
+    document.getElementById('view-listen').style.display = 'none';
+    document.getElementById('view-pick').style.display   = 'block';
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+async function init() {
+    const today = new Date();
+    const [album, artist, year, genre] = getAlbumForDate(today);
+
+    // Header date
+    document.getElementById('date-display').textContent = formatDateHeader(today);
+
+    // Album info
+    document.getElementById('album-title').textContent  = album;
+    document.getElementById('album-artist').textContent = artist;
+    document.getElementById('album-genre').textContent  = genre;
+    document.getElementById('album-year').textContent   = year;
+
+    // Artwork
+    const artUrl = await fetchArtwork(album, artist);
+    if (artUrl) {
+        const img = document.getElementById('artwork-img');
+        img.src = artUrl;
+        img.style.display = 'block';
+        document.getElementById('artwork-placeholder').style.display = 'none';
+    }
+
+    // Service
+    const saved = localStorage.getItem('dailyalbum_service');
+    if (saved && SERVICES[saved]) {
+        showListenView(saved, album, artist);
+    } else {
+        document.getElementById('view-pick').style.display = 'block';
+    }
+
+    // Rating
+    const savedRating = getRatingForDate(today);
+    if (savedRating) applyStarState(parseInt(savedRating));
+    initStarHover();
+}
+
+init();
+
+// ══════════════════════════════════════════════════════════════
+// BLOOD DRIP ANIMATION
+// ══════════════════════════════════════════════════════════════
+function spawnDrip(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const drip = document.createElement('div');
+    drip.className = 'drip';
+
+    const leftPct  = 5 + Math.random() * 90;
+    const width    = 3 + Math.random() * 5;
+    const height   = 12 + Math.random() * 30;
+    const duration = 1200 + Math.random() * 1600;
+
+    drip.style.left  = leftPct + '%';
+    drip.style.width = width + 'px';
+    drip.style.setProperty('--drip-height', height + 'px');
+    drip.style.animation = `drip-grow ${duration}ms ease-in forwards`;
+
+    container.appendChild(drip);
+
+    setTimeout(() => {
+        const drop = document.createElement('div');
+        drop.style.cssText = `
+            position:absolute; left:${leftPct}%; top:${height}px;
+            width:${width + 3}px; height:${width + 3}px;
+            background:#cc0000; border-radius:50%;
+            box-shadow:0 0 4px rgba(140,0,0,0.5);
+            animation:drop-fall 400ms ease-in forwards;
+        `;
+        container.appendChild(drop);
+        setTimeout(() => drop.remove(), 450);
+        setTimeout(() => drip.remove(), 200);
+    }, duration * 0.82);
+}
+
+(function initDrips() {
+    for (let i = 0; i < 5; i++) setTimeout(() => spawnDrip('logo-drip-container'), i * 280);
+    setInterval(() => spawnDrip('logo-drip-container'), 500);
+    for (let i = 0; i < 3; i++) setTimeout(() => spawnDrip('date-drip-container'), 150 + i * 420);
+    setInterval(() => spawnDrip('date-drip-container'), 680);
+})();
+
+// ══════════════════════════════════════════════════════════════
+// PIXEL FIRE ENGINE  (Doom-style cellular automaton)
+// ══════════════════════════════════════════════════════════════
+(function initPixelFire() {
+    const canvas = document.getElementById('fire-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const PIXEL = 6;  // block size — chunky 3-D pixel look
+    let FW, FH;
+
+    // Classic fire palette: index 0 = cold/black, 255 = white-hot
+    const PAL = new Array(256);
+    for (let i = 0; i < 256; i++) {
+        let r, g, b, a;
+        if (i < 20) {
+            r = 0; g = 0; b = 0; a = 0;                        // transparent cold
+        } else if (i < 80) {
+            const t = (i - 20) / 60;
+            r = Math.round(t * 160); g = 0; b = 0; a = Math.round(t * 255); // black → deep red
+        } else if (i < 140) {
+            const t = (i - 80) / 60;
+            r = Math.round(160 + t * 95); g = Math.round(t * 60); b = 0; a = 255; // deep red → red-orange
+        } else if (i < 200) {
+            const t = (i - 140) / 60;
+            r = 255; g = Math.round(60 + t * 130); b = 0; a = 255; // orange
+        } else if (i < 240) {
+            const t = (i - 200) / 40;
+            r = 255; g = Math.round(190 + t * 65); b = Math.round(t * 80); a = 255; // yellow
+        } else {
+            const t = (i - 240) / 15;
+            r = 255; g = 255; b = Math.round(80 + t * 175); a = 255; // white
+        }
+        PAL[i] = [r, g, b, Math.min(255, a)];
+    }
+
+    let fire;
+
+    function resize() {
+        FW = Math.ceil(canvas.offsetWidth  / PIXEL);
+        FH = Math.ceil(canvas.offsetHeight / PIXEL);
+        canvas.width  = FW * PIXEL;
+        canvas.height = FH * PIXEL;
+        fire = new Uint8Array(FW * FH);
+        // seed the bottom 2 rows to maximum heat
+        for (let x = 0; x < FW; x++) {
+            fire[(FH - 1) * FW + x] = 255;
+            fire[(FH - 2) * FW + x] = 255;
+        }
+    }
+
+    function update() {
+        for (let y = 0; y < FH - 1; y++) {
+            for (let x = 0; x < FW; x++) {
+                const below = fire[(y + 1) * FW + x];
+                if (below === 0) { fire[y * FW + x] = 0; continue; }
+                const decay = (Math.random() * 3) | 0;        // 0-2
+                const drift = ((Math.random() * 3) | 0) - 1;  // -1 0 1
+                const nx    = Math.max(0, Math.min(FW - 1, x + drift));
+                fire[y * FW + nx] = Math.max(0, below - decay);
+            }
+        }
+        // keep bottom row fully lit
+        for (let x = 0; x < FW; x++) {
+            fire[(FH - 1) * FW + x] = 255;
+            fire[(FH - 2) * FW + x] = 255;
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let y = 0; y < FH; y++) {
+            for (let x = 0; x < FW; x++) {
+                const v = fire[y * FW + x];
+                if (v === 0) continue;
+                const [r, g, b, a] = PAL[v];
+                if (a === 0) continue;
+                ctx.fillStyle = `rgba(${r},${g},${b},${(a / 255).toFixed(2)})`;
+                ctx.fillRect(x * PIXEL, y * PIXEL, PIXEL, PIXEL);
+            }
+        }
+    }
+
+    function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    loop();
+})();
+</script>
+
+</body>
+</html>
