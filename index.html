@@ -25,18 +25,6 @@
       padding-top: 108px;
     }
 
-    /* ── Pixel fire canvas ───────────────────────────────────── */
-    #fire-canvas {
-      position: fixed;
-      bottom: 0; left: 0;
-      width: 100vw;
-      height: 300px;
-      z-index: 2;
-      pointer-events: none;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
-    }
-
     /* ── Site header ─────────────────────────────────────────── */
     .site-header {
       position: fixed;
@@ -123,7 +111,7 @@
     .tab-btn.active { color: var(--red); border-bottom-color: var(--red); }
 
     /* ── Tab panels ──────────────────────────────────────────── */
-    .tab-panel { max-width: 540px; margin: 0 auto; padding: 24px 16px 280px; position: relative; z-index: 5; }
+    .tab-panel { max-width: 540px; margin: 0 auto; padding: 24px 16px 48px; }
     .tab-panel.hidden { display: none; }
 
     /* ── Album card (today) ──────────────────────────────────── */
@@ -388,7 +376,7 @@
     </div>
 
   </div><!-- /album-card -->
-  <p class="footer">A new album every day &nbsp;·&nbsp; slambeats.kill</p>
+  <p class="footer">Metal Today. Metal Tomorrow. Metal Forever.</p>
 </div>
 
 <!-- ════════════════ ARCHIVE PANEL ════════════════ -->
@@ -403,7 +391,6 @@
   <div id="ratings-list"></div>
 </div>
 
-<canvas id="fire-canvas"></canvas>
 
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -615,12 +602,15 @@ function dateHash(str) {
     for (let i = 0; i < str.length; i++) {
         hash = ((hash << 5) + hash + str.charCodeAt(i)) >>> 0;
     }
-    return hash;
+    // Finalizer: scrambles bits so consecutive inputs don't produce consecutive outputs
+    hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b) >>> 0;
+    hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b) >>> 0;
+    return (hash ^ (hash >>> 16)) >>> 0;
 }
 
-// Unpadded hash string — MUST match daily_album.js exactly
+// Padded date string YYYY-MM-DD — MUST match daily_album.js exactly
 function hashStr(d) {
-    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    return padKey(d);
 }
 
 // Padded date key for localStorage / display (YYYY-MM-DD)
@@ -947,99 +937,6 @@ function spawnDrip(containerId) {
     setInterval(() => spawnDrip('date-drip-container'), 680);
 })();
 
-// ══════════════════════════════════════════════════════════════
-// PIXEL FIRE ENGINE  (Doom-style cellular automaton)
-// ══════════════════════════════════════════════════════════════
-(function initPixelFire() {
-    const canvas = document.getElementById('fire-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    const PIXEL = 6;  // block size — chunky 3-D pixel look
-    let FW, FH;
-
-    // Classic fire palette: index 0 = cold/black, 255 = white-hot
-    const PAL = new Array(256);
-    for (let i = 0; i < 256; i++) {
-        let r, g, b, a;
-        if (i < 20) {
-            r = 0; g = 0; b = 0; a = 0;                        // transparent cold
-        } else if (i < 80) {
-            const t = (i - 20) / 60;
-            r = Math.round(t * 160); g = 0; b = 0; a = Math.round(t * 255); // black → deep red
-        } else if (i < 140) {
-            const t = (i - 80) / 60;
-            r = Math.round(160 + t * 95); g = Math.round(t * 60); b = 0; a = 255; // deep red → red-orange
-        } else if (i < 200) {
-            const t = (i - 140) / 60;
-            r = 255; g = Math.round(60 + t * 130); b = 0; a = 255; // orange
-        } else if (i < 240) {
-            const t = (i - 200) / 40;
-            r = 255; g = Math.round(190 + t * 65); b = Math.round(t * 80); a = 255; // yellow
-        } else {
-            const t = (i - 240) / 15;
-            r = 255; g = 255; b = Math.round(80 + t * 175); a = 255; // white
-        }
-        PAL[i] = [r, g, b, Math.min(255, a)];
-    }
-
-    let fire;
-
-    function resize() {
-        FW = Math.ceil(canvas.offsetWidth  / PIXEL);
-        FH = Math.ceil(canvas.offsetHeight / PIXEL);
-        canvas.width  = FW * PIXEL;
-        canvas.height = FH * PIXEL;
-        fire = new Uint8Array(FW * FH);
-        // seed the bottom 2 rows to maximum heat
-        for (let x = 0; x < FW; x++) {
-            fire[(FH - 1) * FW + x] = 255;
-            fire[(FH - 2) * FW + x] = 255;
-        }
-    }
-
-    function update() {
-        for (let y = 0; y < FH - 1; y++) {
-            for (let x = 0; x < FW; x++) {
-                const below = fire[(y + 1) * FW + x];
-                if (below === 0) { fire[y * FW + x] = 0; continue; }
-                const decay = (Math.random() * 3) | 0;        // 0-2
-                const drift = ((Math.random() * 3) | 0) - 1;  // -1 0 1
-                const nx    = Math.max(0, Math.min(FW - 1, x + drift));
-                fire[y * FW + nx] = Math.max(0, below - decay);
-            }
-        }
-        // keep bottom row fully lit
-        for (let x = 0; x < FW; x++) {
-            fire[(FH - 1) * FW + x] = 255;
-            fire[(FH - 2) * FW + x] = 255;
-        }
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let y = 0; y < FH; y++) {
-            for (let x = 0; x < FW; x++) {
-                const v = fire[y * FW + x];
-                if (v === 0) continue;
-                const [r, g, b, a] = PAL[v];
-                if (a === 0) continue;
-                ctx.fillStyle = `rgba(${r},${g},${b},${(a / 255).toFixed(2)})`;
-                ctx.fillRect(x * PIXEL, y * PIXEL, PIXEL, PIXEL);
-            }
-        }
-    }
-
-    function loop() {
-        update();
-        draw();
-        requestAnimationFrame(loop);
-    }
-
-    resize();
-    window.addEventListener('resize', resize);
-    loop();
-})();
 </script>
 
 </body>
