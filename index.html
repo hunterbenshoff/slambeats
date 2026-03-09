@@ -262,6 +262,18 @@
     .archive-artist { font-size: 12px; color: var(--sub); margin-top: 2px; }
     .archive-genre  { font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #880000; margin-top: 3px; }
     .archive-stars  { font-size: 15px; color: #cc0000; flex-shrink: 0; letter-spacing: 2px; filter: drop-shadow(0 0 4px rgba(180,0,0,0.6)); }
+    .archive-listen { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+    .arch-listen-btn {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+      padding: 3px 9px; border-radius: 4px;
+      text-decoration: none; border: 1px solid transparent;
+      transition: opacity 0.15s, transform 0.1s;
+      opacity: 0.7;
+    }
+    .arch-listen-btn:hover { opacity: 1; transform: translateY(-1px); }
+    .arch-apple   { background: rgba(252,60,68,0.12); color: #fc3c44; border-color: rgba(252,60,68,0.25); }
+    .arch-spotify { background: rgba(29,185,84,0.10); color: #1db954; border-color: rgba(29,185,84,0.22); }
+    .arch-youtube { background: rgba(255,0,0,0.09);  color: #ff5555; border-color: rgba(255,80,80,0.2); }
 
     /* ── Ratings panel ───────────────────────────────────────── */
     .ratings-empty {
@@ -1045,6 +1057,9 @@ async function buildArchivePanel() {
         const ratingHtml = e.cr
             ? `<div class="archive-stars" title="${e.cr.avg.toFixed(1)}/5 · ${e.cr.count} ratings">☠${e.cr.avg.toFixed(1)}</div>`
             : '';
+        const listenHtml = Object.entries(SERVICES).map(([key, svc]) =>
+            `<a class="arch-listen-btn arch-${key}" href="${svc.url(e.album, e.artist)}" target="_blank" rel="noopener">${svc.name}</a>`
+        ).join('');
         return `
           <div class="archive-entry">
             <div class="archive-date">${e.dateStr}</div>
@@ -1052,6 +1067,7 @@ async function buildArchivePanel() {
               <div class="archive-title">${e.album}</div>
               <div class="archive-artist">${e.artist}  ·  ${e.year}</div>
               <div class="archive-genre">${e.genre}</div>
+              <div class="archive-listen">${listenHtml}</div>
             </div>
             ${ratingHtml}
           </div>`;
