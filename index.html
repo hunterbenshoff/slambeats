@@ -85,6 +85,9 @@
     }
     .logo-text { font-size: 22px; letter-spacing: 2px; }
     .date-text  { font-size: 13px; letter-spacing: 1px; text-align: right; }
+    @media (max-width: 500px) {
+      .date-text, #date-drip-container { display: none; }
+    }
 
     /* ── Tab navigation ──────────────────────────────────────── */
     .tab-nav {
@@ -277,6 +280,23 @@
     .re-album  { font-size: 14px; font-weight: 700; }
     .re-artist { font-size: 12px; color: var(--sub); margin-top: 2px; }
     .re-meta   { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: 0.5px; }
+    .indiv-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .indiv-rating {
+      font-size: 11px; color: #cc0000;
+      background: rgba(200,0,0,0.07);
+      border: 1px solid rgba(200,0,0,0.15);
+      border-radius: 4px; padding: 2px 7px;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .indiv-rating.mine {
+      border-color: rgba(200,0,0,0.45);
+      background: rgba(200,0,0,0.16);
+    }
+    .mine-tag {
+      font-size: 9px; color: rgba(220,120,120,0.8);
+      letter-spacing: 0.5px; text-transform: uppercase;
+      font-family: sans-serif;
+    }
 
     /* ── Footer ──────────────────────────────────────────────── */
     .footer {
@@ -885,25 +905,36 @@ const SB_HEADERS  = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABAS
 const RATING_PREFIX = 'slambeats_rating_';
 const RATING_DESCS  = ['', 'Not for me', 'Decent', 'Solid', 'Great', 'All-time classic'];
 
-let ratingsCache = null; // { 'YYYY-MM-DD': { avg, count, ratings[], album, artist } }
+function getUserId() {
+    let uid = localStorage.getItem('slambeats_uid');
+    if (!uid) {
+        uid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem('slambeats_uid', uid);
+    }
+    return uid;
+}
+
+let ratingsCache = null; // { 'YYYY-MM-DD': { avg, count, ratings:[{rating,user_id}], album, artist } }
 
 async function fetchAllRatings(forceRefresh = false) {
     if (ratingsCache && !forceRefresh) return ratingsCache;
     try {
         const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/ratings?select=date,album,artist,rating&order=date.desc`,
+            `${SUPABASE_URL}/rest/v1/ratings?select=date,album,artist,rating,user_id&order=date.desc`,
             { headers: SB_HEADERS }
         );
         const data = await res.json();
         const cache = {};
         data.forEach(r => {
             if (!cache[r.date]) cache[r.date] = { ratings: [], avg: 0, count: 0, album: r.album, artist: r.artist };
-            cache[r.date].ratings.push(r.rating);
+            cache[r.date].ratings.push({ rating: r.rating, user_id: r.user_id });
         });
         Object.keys(cache).forEach(dk => {
-            const arr = cache[dk].ratings;
-            cache[dk].count = arr.length;
-            cache[dk].avg   = arr.reduce((s, v) => s + v, 0) / arr.length;
+            const vals = cache[dk].ratings.map(r => r.rating);
+            cache[dk].count = vals.length;
+            cache[dk].avg   = vals.reduce((s, v) => s + v, 0) / vals.length;
         });
         ratingsCache = cache;
         return cache;
@@ -928,12 +959,17 @@ function applyStarState(rating) {
 async function loadCommunityRating() {
     const dk  = padKey(new Date());
     const cache = await fetchAllRatings(true);
+    const uid = getUserId();
     const el  = document.getElementById('community-rating');
     if (!el) return;
     const d = cache[dk];
     if (d && d.count > 0) {
         const skulls = '☠'.repeat(Math.round(d.avg));
-        el.innerHTML = `<span class="cr-skulls">${skulls}</span><span class="cr-text">${d.avg.toFixed(1)}/5 · ${d.count} rating${d.count > 1 ? 's' : ''} today</span>`;
+        const others = d.ratings.filter(r => r.user_id !== uid).length;
+        const countLabel = others > 0
+            ? `${d.avg.toFixed(1)}/5 · ${d.count} rating${d.count > 1 ? 's' : ''} today`
+            : `Your rating · ${d.avg.toFixed(1)}/5`;
+        el.innerHTML = `<span class="cr-skulls">${skulls}</span><span class="cr-text">${countLabel}</span>`;
         el.style.display = 'block';
     } else {
         el.style.display = 'none';
@@ -944,14 +980,15 @@ async function setRating(val) {
     // Save locally so it persists across refreshes for this browser
     localStorage.setItem(RATING_PREFIX + padKey(new Date()), String(val));
     applyStarState(val);
-    // Post to Supabase
+    // Upsert to Supabase — unique on (date, user_id) so changing rating replaces, not adds
     try {
         const today = new Date();
         const [album, artist] = getAlbumForDate(today);
+        const uid = getUserId();
         await fetch(`${SUPABASE_URL}/rest/v1/ratings`, {
             method: 'POST',
-            headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
-            body: JSON.stringify({ date: padKey(today), album, artist, rating: val })
+            headers: { ...SB_HEADERS, 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+            body: JSON.stringify({ date: padKey(today), album, artist, rating: val, user_id: uid })
         });
         ratingsCache = null;
         await loadCommunityRating();
@@ -1028,6 +1065,7 @@ async function buildRatingsPanel() {
     const list = document.getElementById('ratings-list');
     list.innerHTML = '<p class="ratings-empty">Loading...</p>';
     const ratingsData = await fetchAllRatings(true);
+    const uid = getUserId();
     const dates = Object.keys(ratingsData).sort((a, b) => b.localeCompare(a));
 
     if (dates.length === 0) {
@@ -1042,9 +1080,14 @@ async function buildRatingsPanel() {
         const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
         const skulls  = '☠'.repeat(Math.round(d.avg));
         const dist    = [1,2,3,4,5].map(v => {
-            const cnt = d.ratings.filter(r => r === v).length;
+            const cnt = d.ratings.filter(r => r.rating === v).length;
             const pct = Math.round((cnt / d.count) * 100);
             return `<div class="dist-bar" title="${v}☠: ${cnt}" style="width:${Math.max(pct,2)}%;background:rgba(200,0,0,${0.25 + v*0.15})"></div>`;
+        }).join('');
+        const indiv = d.ratings.map(r => {
+            const isMe = r.user_id === uid;
+            const s = '☠'.repeat(r.rating);
+            return `<span class="indiv-rating${isMe ? ' mine' : ''}">${s}${isMe ? '<span class="mine-tag">you</span>' : ''}</span>`;
         }).join('');
         return `
           <div class="rating-entry">
@@ -1054,6 +1097,7 @@ async function buildRatingsPanel() {
               <div class="re-artist">${d.artist}</div>
               <div class="re-meta">${dateStr}  ·  ${d.avg.toFixed(1)}/5 avg  ·  ${d.count} rating${d.count > 1 ? 's' : ''}</div>
               <div class="dist-row">${dist}</div>
+              <div class="indiv-row">${indiv}</div>
             </div>
           </div>`;
     }).join('');
