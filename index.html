@@ -224,6 +224,13 @@
     .rating-sublabel {
       font-size: 11px; color: var(--muted); min-height: 16px;
     }
+    .community-rating {
+      margin-top: 14px; display: none; text-align: center;
+    }
+    .cr-skulls { color: #cc0000; font-size: 16px; filter: drop-shadow(0 0 4px rgba(200,0,0,0.6)); letter-spacing: 2px; }
+    .cr-text   { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; margin-left: 6px; }
+    .dist-row  { display:flex; height:4px; border-radius:2px; overflow:hidden; margin-top:6px; gap:1px; }
+    .dist-bar  { height:100%; border-radius:1px; min-width:2px; }
 
     /* ── States ──────────────────────────────────────────────── */
     #view-pick  { display: none; }
@@ -373,6 +380,7 @@
         <button class="star-btn" data-val="5" onclick="setRating(5)">☠</button>
       </div>
       <p class="rating-sublabel" id="rating-sublabel"></p>
+      <div class="community-rating" id="community-rating"></div>
     </div>
 
   </div><!-- /album-card -->
@@ -387,7 +395,7 @@
 
 <!-- ════════════════ RATINGS PANEL ════════════════ -->
 <div class="tab-panel hidden" id="panel-ratings">
-  <p class="panel-heading">My Ratings</p>
+  <p class="panel-heading">Community Ratings</p>
   <div id="ratings-list"></div>
 </div>
 
@@ -868,13 +876,41 @@ async function fetchArtwork(album, artist) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://mfauodrizkxxsvdpuyzq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYXVvZHJpemt4eHN2ZHB1eXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjU3MTAsImV4cCI6MjA4ODY0MTcxMH0.WlWIc6X5Hggth8JmnqXJPv2KkF6hgYRQWeBOBmdvITs';
+const SB_HEADERS  = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' };
+
+// ══════════════════════════════════════════════════════════════
 // RATING SYSTEM
 // ══════════════════════════════════════════════════════════════
 const RATING_PREFIX = 'slambeats_rating_';
 const RATING_DESCS  = ['', 'Not for me', 'Decent', 'Solid', 'Great', 'All-time classic'];
 
-function saveRating(val) {
-    localStorage.setItem(RATING_PREFIX + padKey(new Date()), String(val));
+let ratingsCache = null; // { 'YYYY-MM-DD': { avg, count, ratings[], album, artist } }
+
+async function fetchAllRatings(forceRefresh = false) {
+    if (ratingsCache && !forceRefresh) return ratingsCache;
+    try {
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/ratings?select=date,album,artist,rating&order=date.desc`,
+            { headers: SB_HEADERS }
+        );
+        const data = await res.json();
+        const cache = {};
+        data.forEach(r => {
+            if (!cache[r.date]) cache[r.date] = { ratings: [], avg: 0, count: 0, album: r.album, artist: r.artist };
+            cache[r.date].ratings.push(r.rating);
+        });
+        Object.keys(cache).forEach(dk => {
+            const arr = cache[dk].ratings;
+            cache[dk].count = arr.length;
+            cache[dk].avg   = arr.reduce((s, v) => s + v, 0) / arr.length;
+        });
+        ratingsCache = cache;
+        return cache;
+    } catch(e) { return {}; }
 }
 
 function getRatingForDate(d) {
@@ -892,10 +928,37 @@ function applyStarState(rating) {
     label.textContent = r ? `${RATING_DESCS[r]}  (${r}/5)  ·  saved ✓` : '';
 }
 
-function setRating(val) {
-    saveRating(val);
+async function loadCommunityRating() {
+    const dk  = padKey(new Date());
+    const cache = await fetchAllRatings(true);
+    const el  = document.getElementById('community-rating');
+    if (!el) return;
+    const d = cache[dk];
+    if (d && d.count > 0) {
+        const skulls = '☠'.repeat(Math.round(d.avg));
+        el.innerHTML = `<span class="cr-skulls">${skulls}</span><span class="cr-text">${d.avg.toFixed(1)}/5 · ${d.count} rating${d.count > 1 ? 's' : ''} today</span>`;
+        el.style.display = 'block';
+    } else {
+        el.style.display = 'none';
+    }
+}
+
+async function setRating(val) {
+    // Save locally so it persists across refreshes for this browser
+    localStorage.setItem(RATING_PREFIX + padKey(new Date()), String(val));
     applyStarState(val);
-    // Refresh other panels if they're already built
+    // Post to Supabase
+    try {
+        const today = new Date();
+        const [album, artist] = getAlbumForDate(today);
+        await fetch(`${SUPABASE_URL}/rest/v1/ratings`, {
+            method: 'POST',
+            headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ date: padKey(today), album, artist, rating: val })
+        });
+        ratingsCache = null;
+        await loadCommunityRating();
+    } catch(e) {}
     if (!document.getElementById('panel-archive').classList.contains('hidden')) buildArchivePanel();
     if (!document.getElementById('panel-ratings').classList.contains('hidden')) buildRatingsPanel();
 }
@@ -919,22 +982,22 @@ function initStarHover() {
 // ══════════════════════════════════════════════════════════════
 const ARCHIVE_START = new Date('2026-03-01T12:00:00');
 
-function buildArchivePanel() {
-    const list = document.getElementById('archive-list');
+async function buildArchivePanel() {
+    const list  = document.getElementById('archive-list');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
+    const ratingsData = await fetchAllRatings();
     const entries = [];
+
     for (let d = new Date(today); d >= ARCHIVE_START; d.setDate(d.getDate() - 1)) {
         const dd = new Date(d);
         dd.setHours(12, 0, 0, 0);
-        if (dd.getTime() >= today.getTime()) continue; // skip today (shown in Today tab)
-
+        if (dd.getTime() >= today.getTime()) continue;
         const [album, artist, year, genre] = getAlbumForDate(dd);
-        const rating = getRatingForDate(dd);
+        const dk  = padKey(dd);
+        const cr  = ratingsData[dk];
         const dateStr = dd.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-
-        entries.push({ dateStr, album, artist, year, genre, rating });
+        entries.push({ dateStr, album, artist, year, genre, cr });
     }
 
     if (entries.length === 0) {
@@ -944,9 +1007,10 @@ function buildArchivePanel() {
     }
 
     document.getElementById('archive-heading').textContent = `Previous Albums  ·  ${entries.length} days`;
-
     list.innerHTML = entries.map(e => {
-        const stars = e.rating ? '★'.repeat(parseInt(e.rating)) : '';
+        const ratingHtml = e.cr
+            ? `<div class="archive-stars" title="${e.cr.avg.toFixed(1)}/5 · ${e.cr.count} ratings">☠${e.cr.avg.toFixed(1)}</div>`
+            : '';
         return `
           <div class="archive-entry">
             <div class="archive-date">${e.dateStr}</div>
@@ -955,7 +1019,7 @@ function buildArchivePanel() {
               <div class="archive-artist">${e.artist}  ·  ${e.year}</div>
               <div class="archive-genre">${e.genre}</div>
             </div>
-            ${stars ? `<div class="archive-stars">${stars}</div>` : ''}
+            ${ratingHtml}
           </div>`;
     }).join('');
 }
@@ -963,43 +1027,39 @@ function buildArchivePanel() {
 // ══════════════════════════════════════════════════════════════
 // RATINGS PANEL
 // ══════════════════════════════════════════════════════════════
-function buildRatingsPanel() {
+async function buildRatingsPanel() {
     const list = document.getElementById('ratings-list');
-    const ratings = [];
+    list.innerHTML = '<p class="ratings-empty">Loading...</p>';
+    const ratingsData = await fetchAllRatings(true);
+    const dates = Object.keys(ratingsData).sort((a, b) => b.localeCompare(a));
 
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (!key || !key.startsWith(RATING_PREFIX)) continue;
-        const dk = key.replace(RATING_PREFIX, '');
-        const val = parseInt(localStorage.getItem(key));
-        if (!val || val < 1 || val > 5) continue;
-
-        // Reconstruct date from YYYY-MM-DD key
-        const parts = dk.split('-');
-        if (parts.length !== 3) continue;
-        const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12);
-        const [album, artist, year, genre] = getAlbumForDate(d);
-        const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-
-        ratings.push({ dk, dateStr, album, artist, year, genre, val });
-    }
-
-    if (ratings.length === 0) {
-        list.innerHTML = '<p class="ratings-empty">No ratings yet.<br>Rate today\'s album to get started!</p>';
+    if (dates.length === 0) {
+        list.innerHTML = '<p class="ratings-empty">No community ratings yet.<br>Be the first to rate today\'s album!</p>';
         return;
     }
 
-    ratings.sort((a, b) => b.dk.localeCompare(a.dk));
-
-    list.innerHTML = ratings.map(r => `
-      <div class="rating-entry">
-        <div class="re-stars">${r.val}★</div>
-        <div class="re-info">
-          <div class="re-album">${r.album}</div>
-          <div class="re-artist">${r.artist}  ·  ${r.year}</div>
-          <div class="re-meta">${r.dateStr}  ·  ${RATING_DESCS[r.val]}</div>
-        </div>
-      </div>`).join('');
+    list.innerHTML = dates.map(dk => {
+        const d = ratingsData[dk];
+        const parts   = dk.split('-');
+        const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12);
+        const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+        const skulls  = '☠'.repeat(Math.round(d.avg));
+        const dist    = [1,2,3,4,5].map(v => {
+            const cnt = d.ratings.filter(r => r === v).length;
+            const pct = Math.round((cnt / d.count) * 100);
+            return `<div class="dist-bar" title="${v}☠: ${cnt}" style="width:${Math.max(pct,2)}%;background:rgba(200,0,0,${0.25 + v*0.15})"></div>`;
+        }).join('');
+        return `
+          <div class="rating-entry">
+            <div class="re-stars">${skulls}</div>
+            <div class="re-info">
+              <div class="re-album">${d.album}</div>
+              <div class="re-artist">${d.artist}</div>
+              <div class="re-meta">${dateStr}  ·  ${d.avg.toFixed(1)}/5 avg  ·  ${d.count} rating${d.count > 1 ? 's' : ''}</div>
+              <div class="dist-row">${dist}</div>
+            </div>
+          </div>`;
+    }).join('');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1078,6 +1138,7 @@ async function init() {
     const savedRating = getRatingForDate(today);
     if (savedRating) applyStarState(parseInt(savedRating));
     initStarHover();
+    loadCommunityRating();
 }
 
 init();
