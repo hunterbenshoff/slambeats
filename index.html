@@ -1357,53 +1357,8 @@ init();
       setTimeout(() => { svg.style.opacity = '0.15'; }, 80);
       setTimeout(() => svg.remove(), 21000);
 
-      spawnDrop(c, cx, maxH, sw, col);
     }
     requestAnimationFrame(frame);
-  }
-
-  function spawnDrop(c, cx, startY, sw, col) {
-    const r   = sw * 0.92 + 2.2;
-    const id  = '_dp' + Math.random().toString(36).slice(2);
-    const sz  = r * 8;
-    const svg = document.createElementNS(NS, 'svg');
-    svg.style.cssText = `position:absolute;left:calc(${cx}% - ${sz/2}px);top:${startY - r*0.5}px;width:${sz}px;height:${sz}px;overflow:visible;pointer-events:none;`;
-    svg.innerHTML = `<defs>
-      <radialGradient id="${id}g" cx="34%" cy="26%" r="68%">
-        <stop offset="0%"   stop-color="${col.light}"/>
-        <stop offset="100%" stop-color="${col.dark}"/>
-      </radialGradient>
-    </defs>
-    <ellipse id="${id}e" cx="${sz/2}" cy="${r}" rx="${r*0.72}" ry="${r*1.08}" fill="url(#${id}g)" filter="url(#blood-organic-filter)"/>`;
-    c.appendChild(svg);
-
-    const el       = document.getElementById(id + 'e');
-    const t0       = performance.now();
-    const fallDur  = 300 + Math.random() * 200;
-    const dist     = 22 + Math.random() * 30;
-    const splatDur = 380;
-
-    function fall(now) {
-      const p    = Math.min((now - t0) / fallDur, 1);
-      const ease = p * p;  // gravity acceleration, no deceleration
-      const stretch = 1 + ease * 0.5;  // elongates as it falls
-      el.setAttribute('ry', r * 1.08 * stretch);
-      el.setAttribute('rx', r * 0.72 / Math.sqrt(stretch));
-      svg.style.transform = `translateY(${dist * ease}px)`;
-      if (p < 1) { requestAnimationFrame(fall); return; }
-      // Splat
-      const t1 = performance.now();
-      function splatFrame(now2) {
-        const sp = Math.min((now2 - t1) / splatDur, 1);
-        el.setAttribute('rx', r * 0.72 + r * 2.2 * sp);
-        el.setAttribute('ry', r * 1.58 * (1 - sp * 0.88));
-        el.setAttribute('cy', r + dist + r * 1.58 * (1 - sp * 0.88) * 0.25);
-        svg.style.opacity = String(1 - sp * 0.92);
-        if (sp < 1) requestAnimationFrame(splatFrame); else svg.remove();
-      }
-      requestAnimationFrame(splatFrame);
-    }
-    requestAnimationFrame(fall);
   }
 
   function initDrips() {
