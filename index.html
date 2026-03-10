@@ -64,23 +64,7 @@
       overflow: visible;
       z-index: 22;
     }
-    .drip {
-      position: absolute; top: 0;
-      background: #990000;
-      border-radius: 0 0 50% 50%;
-      transform-origin: top center;
-      box-shadow: 0 0 4px rgba(140,0,0,0.5);
-    }
-    @keyframes drip-grow {
-      0%   { height: 2px;  opacity: 1; }
-      70%  { height: var(--drip-height); opacity: 1; }
-      85%  { height: calc(var(--drip-height) + 6px); opacity: 1; }
-      100% { height: calc(var(--drip-height) + 4px); opacity: 0; }
-    }
-    @keyframes drop-fall {
-      0%   { transform: translateY(0)    scale(1);   opacity: 1; }
-      100% { transform: translateY(28px) scale(0.4); opacity: 0; }
-    }
+    /* drip shapes are now SVG — no CSS needed for .drip */
 
     /* ── Nosifer shared ──────────────────────────────────────── */
     .nosifer-text {
@@ -1230,44 +1214,123 @@ init();
 // BLOOD DRIP ANIMATION
 // ══════════════════════════════════════════════════════════════
 function spawnDrip(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+    const c = document.getElementById(containerId);
+    if (!c) return;
+    const NS    = 'http://www.w3.org/2000/svg';
+    const cx    = 5 + Math.random() * 90;
+    const sw    = 1.5 + Math.random() * 5;
+    const maxH  = 18 + Math.random() * 52;
+    const dur   = 800 + Math.random() * 2800;
+    // Varied blood tones — some bright arterial, some dark
+    const b     = Math.floor(Math.random() * 55);
+    const color = `rgb(${165 + b},${b > 35 ? 8 : 0},0)`;
+    const dark  = `rgb(${60 + b},0,0)`;
+    const id    = '_d' + Math.random().toString(36).slice(2);
+    const W     = sw * 6 + 14;
+    const H     = maxH + sw * 6 + 18;
+    const mid   = W / 2;
 
-    const drip = document.createElement('div');
-    drip.className = 'drip';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.style.cssText = `position:absolute;left:calc(${cx}% - ${mid}px);top:-1px;width:${W}px;height:${H}px;overflow:visible;pointer-events:none;`;
+    svg.innerHTML = `
+      <defs>
+        <radialGradient id="${id}g" cx="38%" cy="32%" r="65%">
+          <stop offset="0%"   stop-color="${color}"/>
+          <stop offset="52%"  stop-color="${dark}"/>
+          <stop offset="100%" stop-color="rgb(35,0,0)" stop-opacity="0.92"/>
+        </radialGradient>
+      </defs>
+      <path id="${id}p" fill="url(#${id}g)"/>
+      <ellipse id="${id}hi" rx="0" ry="0" fill="rgba(255,90,90,0.2)"/>
+    `;
+    c.appendChild(svg);
 
-    const leftPct  = 5 + Math.random() * 90;
-    const width    = 3 + Math.random() * 5;
-    const height   = 12 + Math.random() * 30;
-    const duration = 1200 + Math.random() * 1600;
+    const path = document.getElementById(id + 'p');
+    const hi   = document.getElementById(id + 'hi');
+    const half = sw / 2;
+    const t0   = performance.now();
 
-    drip.style.left  = leftPct + '%';
-    drip.style.width = width + 'px';
-    drip.style.setProperty('--drip-height', height + 'px');
-    drip.style.animation = `drip-grow ${duration}ms ease-in forwards`;
+    function frame(now) {
+        const p    = Math.min((now - t0) / dur, 1);
+        const ease = p < 0.5 ? 2*p*p : -1+(4-2*p)*p; // ease-in-out
+        const h    = maxH * ease;
+        const bP   = Math.max(0, (p - 0.42) / 0.58);  // bulge starts at 42%
+        const bR   = half * 0.9 + sw * 1.15 * bP;
 
-    container.appendChild(drip);
+        if (h < 1) { requestAnimationFrame(frame); return; }
 
-    setTimeout(() => {
-        const drop = document.createElement('div');
-        drop.style.cssText = `
-            position:absolute; left:${leftPct}%; top:${height}px;
-            width:${width + 3}px; height:${width + 3}px;
-            background:#cc0000; border-radius:50%;
-            box-shadow:0 0 4px rgba(140,0,0,0.5);
-            animation:drop-fall 400ms ease-in forwards;
-        `;
-        container.appendChild(drop);
-        setTimeout(() => drop.remove(), 450);
-        setTimeout(() => drip.remove(), 200);
-    }, duration * 0.82);
+        const tw = half * 0.88;
+        const bw = half * Math.max(0.45, 1 - bP * 0.55);
+        let d;
+        if (bP > 0.02) {
+            const join = Math.max(0, h - bR * 1.05);
+            d = [
+                `M ${mid - tw} 0`,
+                `L ${mid - bw} ${join}`,
+                `Q ${mid - bR} ${h - bR * 0.4}  ${mid - bR} ${h}`,
+                `Q ${mid - bR} ${h + bR * 1.18} ${mid}      ${h + bR * 1.22}`,
+                `Q ${mid + bR} ${h + bR * 1.18} ${mid + bR} ${h}`,
+                `Q ${mid + bR} ${h - bR * 0.4}  ${mid + bw} ${join}`,
+                `L ${mid + tw} 0`, 'Z'
+            ];
+            // Glint highlight on upper-left of bulge
+            hi.setAttribute('cx',   mid - bR * 0.38);
+            hi.setAttribute('cy',   h + bR * 0.08);
+            hi.setAttribute('rx',   bR * 0.25);
+            hi.setAttribute('ry',   bR * 0.18);
+        } else {
+            d = [
+                `M ${mid - tw} 0`,
+                `L ${mid - half * 0.55} ${h}`,
+                `Q ${mid} ${h + 2.5} ${mid + half * 0.55} ${h}`,
+                `L ${mid + tw} 0`, 'Z'
+            ];
+        }
+        path.setAttribute('d', d.join(' '));
+
+        if (p < 1) { requestAnimationFrame(frame); return; }
+        svg.remove();
+        spawnDrop(c, cx, maxH, sw, color, dark);
+    }
+    requestAnimationFrame(frame);
+}
+
+function spawnDrop(c, cx, startY, sw, color, dark) {
+    const NS  = 'http://www.w3.org/2000/svg';
+    const r   = sw * 0.85 + 1.8;
+    const id  = '_dp' + Math.random().toString(36).slice(2);
+    const svg = document.createElementNS(NS, 'svg');
+    const ry  = r * (0.88 + Math.random() * 0.28);
+    svg.style.cssText = `position:absolute;left:calc(${cx}% - ${r*3}px);top:${startY - r}px;width:${r*6}px;height:${r*6}px;overflow:visible;pointer-events:none;`;
+    svg.innerHTML = `
+      <defs>
+        <radialGradient id="${id}g" cx="34%" cy="28%" r="66%">
+          <stop offset="0%"   stop-color="${color}"/>
+          <stop offset="100%" stop-color="${dark}"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="${r*3}" cy="${ry}" rx="${r}" ry="${ry}" fill="url(#${id}g)"/>
+    `;
+    c.appendChild(svg);
+
+    const t0   = performance.now();
+    const dur  = 220 + Math.random() * 200;
+    const dist = 20 + Math.random() * 22;
+
+    function fall(now) {
+        const p = Math.min((now - t0) / dur, 1);
+        svg.style.transform = `translateY(${dist * p * p}px)`;
+        svg.style.opacity   = String(1 - p);
+        if (p < 1) requestAnimationFrame(fall); else svg.remove();
+    }
+    requestAnimationFrame(fall);
 }
 
 (function initDrips() {
-    for (let i = 0; i < 5; i++) setTimeout(() => spawnDrip('logo-drip-container'), i * 280);
-    setInterval(() => spawnDrip('logo-drip-container'), 500);
-    for (let i = 0; i < 3; i++) setTimeout(() => spawnDrip('date-drip-container'), 150 + i * 420);
-    setInterval(() => spawnDrip('date-drip-container'), 680);
+    for (let i = 0; i < 6; i++) setTimeout(() => spawnDrip('logo-drip-container'), i * 220);
+    setInterval(() => spawnDrip('logo-drip-container'), 420);
+    for (let i = 0; i < 3; i++) setTimeout(() => spawnDrip('date-drip-container'), 180 + i * 380);
+    setInterval(() => spawnDrip('date-drip-container'), 600);
 })();
 
 </script>
