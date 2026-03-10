@@ -118,7 +118,7 @@
     .tab-nav {
       position: fixed;
       top: 60px; left: 0; right: 0;
-      z-index: 19;
+      z-index: 25;
       display: flex;
       background: rgba(8,2,4,0.98);
       backdrop-filter: blur(8px);
@@ -240,6 +240,7 @@
       cursor: pointer; padding: 0; line-height: 1;
       transition: color 0.12s, transform 0.12s, text-shadow 0.12s;
       filter: drop-shadow(0 0 0px transparent);
+      font-variant-emoji: text;
     }
     .star-btn:hover      { transform: scale(1.2); }
     .star-btn.lit        {
@@ -431,11 +432,11 @@
     <div class="rating-section">
       <p class="rating-label">Rate Today's Album</p>
       <div class="star-row" id="star-row">
-        <button class="star-btn" data-val="1" onclick="setRating(1)">☠</button>
-        <button class="star-btn" data-val="2" onclick="setRating(2)">☠</button>
-        <button class="star-btn" data-val="3" onclick="setRating(3)">☠</button>
-        <button class="star-btn" data-val="4" onclick="setRating(4)">☠</button>
-        <button class="star-btn" data-val="5" onclick="setRating(5)">☠</button>
+        <button class="star-btn" data-val="1" onclick="setRating(1)">&#x2620;&#xFE0E;</button>
+        <button class="star-btn" data-val="2" onclick="setRating(2)">&#x2620;&#xFE0E;</button>
+        <button class="star-btn" data-val="3" onclick="setRating(3)">&#x2620;&#xFE0E;</button>
+        <button class="star-btn" data-val="4" onclick="setRating(4)">&#x2620;&#xFE0E;</button>
+        <button class="star-btn" data-val="5" onclick="setRating(5)">&#x2620;&#xFE0E;</button>
       </div>
       <p class="rating-sublabel" id="rating-sublabel"></p>
       <div class="community-rating" id="community-rating"></div>
@@ -1002,7 +1003,7 @@ async function loadCommunityRating() {
     if (!el) return;
     const d = cache[dk];
     if (d && d.count > 0) {
-        const skulls = '☠'.repeat(Math.round(d.avg));
+        const skulls = '\u2620\uFE0E'.repeat(Math.round(d.avg));
         const others = d.ratings.filter(r => r.user_id !== uid).length;
         const countLabel = others > 0
             ? `${d.avg.toFixed(1)}/5 · ${d.count} rating${d.count > 1 ? 's' : ''} today`
@@ -1081,7 +1082,7 @@ async function buildArchivePanel() {
     document.getElementById('archive-heading').textContent = `Previous Albums  ·  ${entries.length} days`;
     list.innerHTML = entries.map(e => {
         const ratingHtml = e.cr
-            ? `<div class="archive-stars" title="${e.cr.avg.toFixed(1)}/5 · ${e.cr.count} ratings">☠${e.cr.avg.toFixed(1)}</div>`
+            ? `<div class="archive-stars" title="${e.cr.avg.toFixed(1)}/5 · ${e.cr.count} ratings">\u2620\uFE0E${e.cr.avg.toFixed(1)}</div>`
             : '';
         const listenHtml = Object.entries(SERVICES).map(([key, svc]) =>
             `<a class="arch-listen-btn arch-${key}" href="${svc.url(e.album, e.artist)}" target="_blank" rel="noopener">${svc.name}</a>`
@@ -1120,15 +1121,15 @@ async function buildRatingsPanel() {
         const parts   = dk.split('-');
         const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12);
         const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-        const skulls  = '☠'.repeat(Math.round(d.avg));
+        const skulls  = '\u2620\uFE0E'.repeat(Math.round(d.avg));
         const dist    = [1,2,3,4,5].map(v => {
             const cnt = d.ratings.filter(r => r.rating === v).length;
             const pct = Math.round((cnt / d.count) * 100);
-            return `<div class="dist-bar" title="${v}☠: ${cnt}" style="width:${Math.max(pct,2)}%;background:rgba(200,0,0,${0.25 + v*0.15})"></div>`;
+            return `<div class="dist-bar" title="${v}\u2620\uFE0E: ${cnt}" style="width:${Math.max(pct,2)}%;background:rgba(200,0,0,${0.25 + v*0.15})"></div>`;
         }).join('');
         const indiv = d.ratings.map(r => {
             const isMe = r.user_id === uid;
-            const s = '☠'.repeat(r.rating);
+            const s = '\u2620\uFE0E'.repeat(r.rating);
             return `<span class="indiv-rating${isMe ? ' mine' : ''}">${s}${isMe ? '<span class="mine-tag">you</span>' : ''}</span>`;
         }).join('');
         return `
