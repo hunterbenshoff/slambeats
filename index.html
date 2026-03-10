@@ -1227,126 +1227,212 @@ async function init() {
 init();
 
 // ══════════════════════════════════════════════════════════════
-// BLOOD DRIP ANIMATION
+// BLOOD DRIP ANIMATION — Realistic
 // ══════════════════════════════════════════════════════════════
-function spawnDrip(containerId) {
+(function() {
+  const NS = 'http://www.w3.org/2000/svg';
+
+  // Shared SVG filter — organic irregular edges (biggest realism factor)
+  function ensureFilter() {
+    if (document.getElementById('blood-organic-filter')) return;
+    const s = document.createElementNS(NS, 'svg');
+    s.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;';
+    s.innerHTML = `<defs>
+      <filter id="blood-organic-filter" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.7 0.5" numOctaves="4" seed="8" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>`;
+    document.body.appendChild(s);
+  }
+
+  function bloodColor() {
+    const r = 78 + Math.floor(Math.random() * 45);
+    return {
+      light: `rgb(${r},${Math.floor(r*0.05)},${Math.floor(r*0.02)})`,
+      dark:  `rgb(${Math.floor(r*0.42)},0,0)`,
+      dried: `rgb(${Math.floor(r*0.52)},2,1)`
+    };
+  }
+
+  // Static dried drip — rendered once, no animation
+  function renderStaticDrip(c, cx, sw, h) {
+    const col = bloodColor();
+    const id  = '_s' + Math.random().toString(36).slice(2);
+    const W   = sw * 7 + 12;
+    const mid = W / 2;
+    const half = sw / 2;
+    const tw  = half * 0.75;
+    const bR  = half * 0.75 + sw * 1.05;
+    const join = Math.max(2, h - bR * 1.1);
+    const bw  = half * 0.45;
+    const H   = h + bR * 1.4 + 8;
+    const d = [
+      `M ${mid - tw} 0`,
+      `C ${mid - tw*0.7} ${h*0.28} ${mid - bw} ${join} ${mid - bR} ${h}`,
+      `Q ${mid - bR} ${h + bR*1.25} ${mid} ${h + bR*1.3}`,
+      `Q ${mid + bR} ${h + bR*1.25} ${mid + bR} ${h}`,
+      `C ${mid + bw} ${join} ${mid + tw*0.7} ${h*0.28} ${mid + tw} 0`,
+      'Z'
+    ].join(' ');
+
+    const svg = document.createElementNS(NS, 'svg');
+    svg.style.cssText = `position:absolute;left:calc(${cx}% - ${mid}px);top:-1px;width:${W}px;height:${H}px;overflow:visible;pointer-events:none;opacity:${0.3 + Math.random()*0.4};`;
+    svg.innerHTML = `<defs>
+      <radialGradient id="${id}g" cx="40%" cy="35%" r="65%">
+        <stop offset="0%"   stop-color="${col.light}"/>
+        <stop offset="58%"  stop-color="${col.dried}"/>
+        <stop offset="100%" stop-color="rgb(22,0,0)" stop-opacity="0.9"/>
+      </radialGradient>
+    </defs>
+    <path d="${d}" fill="url(#${id}g)" filter="url(#blood-organic-filter)"/>`;
+    c.appendChild(svg);
+  }
+
+  // Animated fresh drip — slow, weighty, realistic
+  function spawnDrip(containerId) {
     const c = document.getElementById(containerId);
     if (!c) return;
-    const NS    = 'http://www.w3.org/2000/svg';
-    const cx    = 5 + Math.random() * 90;
-    const sw    = 1.5 + Math.random() * 5;
-    const maxH  = 18 + Math.random() * 52;
-    const dur   = 800 + Math.random() * 2800;
-    // Varied blood tones — some bright arterial, some dark
-    const b     = Math.floor(Math.random() * 55);
-    const color = `rgb(${165 + b},${b > 35 ? 8 : 0},0)`;
-    const dark  = `rgb(${60 + b},0,0)`;
-    const id    = '_d' + Math.random().toString(36).slice(2);
-    const W     = sw * 6 + 14;
-    const H     = maxH + sw * 6 + 18;
-    const mid   = W / 2;
+    const cx   = 5 + Math.random() * 90;
+    const sw   = 1.5 + Math.random() * 3.8;
+    const maxH = 20 + Math.random() * 52;
+    const dur  = 5000 + Math.random() * 7000;   // 5–12 seconds
+    const col  = bloodColor();
+    const id   = '_d' + Math.random().toString(36).slice(2);
+    const W    = sw * 7 + 14;
+    const H    = maxH + sw * 7 + 22;
+    const mid  = W / 2;
+    const half = sw / 2;
+    const tw   = half * 0.82;
 
     const svg = document.createElementNS(NS, 'svg');
     svg.style.cssText = `position:absolute;left:calc(${cx}% - ${mid}px);top:-1px;width:${W}px;height:${H}px;overflow:visible;pointer-events:none;`;
-    svg.innerHTML = `
-      <defs>
-        <radialGradient id="${id}g" cx="38%" cy="32%" r="65%">
-          <stop offset="0%"   stop-color="${color}"/>
-          <stop offset="52%"  stop-color="${dark}"/>
-          <stop offset="100%" stop-color="rgb(35,0,0)" stop-opacity="0.92"/>
-        </radialGradient>
-      </defs>
-      <path id="${id}p" fill="url(#${id}g)"/>
-      <ellipse id="${id}hi" rx="0" ry="0" fill="rgba(255,90,90,0.2)"/>
-    `;
+    svg.innerHTML = `<defs>
+      <radialGradient id="${id}g" cx="38%" cy="30%" r="65%">
+        <stop offset="0%"   stop-color="${col.light}"/>
+        <stop offset="54%"  stop-color="${col.dark}"/>
+        <stop offset="100%" stop-color="rgb(28,0,0)" stop-opacity="0.94"/>
+      </radialGradient>
+    </defs>
+    <path id="${id}p" fill="url(#${id}g)" filter="url(#blood-organic-filter)"/>`;
     c.appendChild(svg);
 
     const path = document.getElementById(id + 'p');
-    const hi   = document.getElementById(id + 'hi');
-    const half = sw / 2;
     const t0   = performance.now();
 
     function frame(now) {
-        const p    = Math.min((now - t0) / dur, 1);
-        const ease = p < 0.5 ? 2*p*p : -1+(4-2*p)*p; // ease-in-out
-        const h    = maxH * ease;
-        const bP   = Math.max(0, (p - 0.42) / 0.58);  // bulge starts at 42%
-        const bR   = half * 0.9 + sw * 1.15 * bP;
+      const raw = Math.min((now - t0) / dur, 1);
+      // Ease-in cubic: slow start (surface tension), accelerate toward end
+      const ease = raw * raw * (3 - 2 * raw);
+      const h    = maxH * ease;
+      const bP   = Math.max(0, (raw - 0.58) / 0.42);  // bulge only in last 42%
+      const bR   = half * 0.65 + sw * 1.22 * bP;
 
-        if (h < 1) { requestAnimationFrame(frame); return; }
+      let d;
+      if (bP > 0.03) {
+        const join = Math.max(0, h - bR * 1.1);
+        const bw   = half * Math.max(0.38, 1 - bP * 0.65);
+        d = [
+          `M ${mid - tw} 0`,
+          `C ${mid - tw*0.75} ${h*0.22} ${mid - bw} ${join} ${mid - bR} ${h}`,
+          `Q ${mid - bR} ${h + bR*1.24} ${mid} ${h + bR*1.3}`,
+          `Q ${mid + bR} ${h + bR*1.24} ${mid + bR} ${h}`,
+          `C ${mid + bw} ${join} ${mid + tw*0.75} ${h*0.22} ${mid + tw} 0`,
+          'Z'
+        ];
+      } else {
+        d = [
+          `M ${mid - tw} 0`,
+          `L ${mid - half*0.48} ${h}`,
+          `Q ${mid} ${h + 2} ${mid + half*0.48} ${h}`,
+          `L ${mid + tw} 0`, 'Z'
+        ];
+      }
+      path.setAttribute('d', d.join(' '));
 
-        const tw = half * 0.88;
-        const bw = half * Math.max(0.45, 1 - bP * 0.55);
-        let d;
-        if (bP > 0.02) {
-            const join = Math.max(0, h - bR * 1.05);
-            d = [
-                `M ${mid - tw} 0`,
-                `L ${mid - bw} ${join}`,
-                `Q ${mid - bR} ${h - bR * 0.4}  ${mid - bR} ${h}`,
-                `Q ${mid - bR} ${h + bR * 1.18} ${mid}      ${h + bR * 1.22}`,
-                `Q ${mid + bR} ${h + bR * 1.18} ${mid + bR} ${h}`,
-                `Q ${mid + bR} ${h - bR * 0.4}  ${mid + bw} ${join}`,
-                `L ${mid + tw} 0`, 'Z'
-            ];
-            // Glint highlight on upper-left of bulge
-            hi.setAttribute('cx',   mid - bR * 0.38);
-            hi.setAttribute('cy',   h + bR * 0.08);
-            hi.setAttribute('rx',   bR * 0.25);
-            hi.setAttribute('ry',   bR * 0.18);
-        } else {
-            d = [
-                `M ${mid - tw} 0`,
-                `L ${mid - half * 0.55} ${h}`,
-                `Q ${mid} ${h + 2.5} ${mid + half * 0.55} ${h}`,
-                `L ${mid + tw} 0`, 'Z'
-            ];
-        }
-        path.setAttribute('d', d.join(' '));
+      if (raw < 1) { requestAnimationFrame(frame); return; }
 
-        if (p < 1) { requestAnimationFrame(frame); return; }
-        svg.remove();
-        spawnDrop(c, cx, maxH, sw, color, dark);
+      // Streak stays — fade slowly over 20s (looks like drying blood)
+      svg.style.transition = 'opacity 20s linear';
+      setTimeout(() => { svg.style.opacity = '0.15'; }, 80);
+      setTimeout(() => svg.remove(), 21000);
+
+      spawnDrop(c, cx, maxH, sw, col);
     }
     requestAnimationFrame(frame);
-}
+  }
 
-function spawnDrop(c, cx, startY, sw, color, dark) {
-    const NS  = 'http://www.w3.org/2000/svg';
-    const r   = sw * 0.85 + 1.8;
+  function spawnDrop(c, cx, startY, sw, col) {
+    const r   = sw * 0.92 + 2.2;
     const id  = '_dp' + Math.random().toString(36).slice(2);
+    const sz  = r * 8;
     const svg = document.createElementNS(NS, 'svg');
-    const ry  = r * (0.88 + Math.random() * 0.28);
-    svg.style.cssText = `position:absolute;left:calc(${cx}% - ${r*3}px);top:${startY - r}px;width:${r*6}px;height:${r*6}px;overflow:visible;pointer-events:none;`;
-    svg.innerHTML = `
-      <defs>
-        <radialGradient id="${id}g" cx="34%" cy="28%" r="66%">
-          <stop offset="0%"   stop-color="${color}"/>
-          <stop offset="100%" stop-color="${dark}"/>
-        </radialGradient>
-      </defs>
-      <ellipse cx="${r*3}" cy="${ry}" rx="${r}" ry="${ry}" fill="url(#${id}g)"/>
-    `;
+    svg.style.cssText = `position:absolute;left:calc(${cx}% - ${sz/2}px);top:${startY - r*0.5}px;width:${sz}px;height:${sz}px;overflow:visible;pointer-events:none;`;
+    svg.innerHTML = `<defs>
+      <radialGradient id="${id}g" cx="34%" cy="26%" r="68%">
+        <stop offset="0%"   stop-color="${col.light}"/>
+        <stop offset="100%" stop-color="${col.dark}"/>
+      </radialGradient>
+    </defs>
+    <ellipse id="${id}e" cx="${sz/2}" cy="${r}" rx="${r*0.72}" ry="${r*1.08}" fill="url(#${id}g)" filter="url(#blood-organic-filter)"/>`;
     c.appendChild(svg);
 
-    const t0   = performance.now();
-    const dur  = 220 + Math.random() * 200;
-    const dist = 20 + Math.random() * 22;
+    const el       = document.getElementById(id + 'e');
+    const t0       = performance.now();
+    const fallDur  = 300 + Math.random() * 200;
+    const dist     = 22 + Math.random() * 30;
+    const splatDur = 380;
 
     function fall(now) {
-        const p = Math.min((now - t0) / dur, 1);
-        svg.style.transform = `translateY(${dist * p * p}px)`;
-        svg.style.opacity   = String(1 - p);
-        if (p < 1) requestAnimationFrame(fall); else svg.remove();
+      const p    = Math.min((now - t0) / fallDur, 1);
+      const ease = p * p;  // gravity acceleration, no deceleration
+      const stretch = 1 + ease * 0.5;  // elongates as it falls
+      el.setAttribute('ry', r * 1.08 * stretch);
+      el.setAttribute('rx', r * 0.72 / Math.sqrt(stretch));
+      svg.style.transform = `translateY(${dist * ease}px)`;
+      if (p < 1) { requestAnimationFrame(fall); return; }
+      // Splat
+      const t1 = performance.now();
+      function splatFrame(now2) {
+        const sp = Math.min((now2 - t1) / splatDur, 1);
+        el.setAttribute('rx', r * 0.72 + r * 2.2 * sp);
+        el.setAttribute('ry', r * 1.58 * (1 - sp * 0.88));
+        el.setAttribute('cy', r + dist + r * 1.58 * (1 - sp * 0.88) * 0.25);
+        svg.style.opacity = String(1 - sp * 0.92);
+        if (sp < 1) requestAnimationFrame(splatFrame); else svg.remove();
+      }
+      requestAnimationFrame(splatFrame);
     }
     requestAnimationFrame(fall);
-}
+  }
 
-(function initDrips() {
-    for (let i = 0; i < 6; i++) setTimeout(() => spawnDrip('logo-drip-container'), i * 220);
-    setInterval(() => spawnDrip('logo-drip-container'), 420);
-    for (let i = 0; i < 3; i++) setTimeout(() => spawnDrip('date-drip-container'), 180 + i * 380);
-    setInterval(() => spawnDrip('date-drip-container'), 600);
+  function initDrips() {
+    ensureFilter();
+    const containers = [
+      { id: 'logo-drip-container', staticCount: 4, interval: 4000 },
+      { id: 'date-drip-container', staticCount: 3, interval: 6000 }
+    ];
+    containers.forEach(({ id, staticCount, interval }, ci) => {
+      const c = document.getElementById(id);
+      if (!c) return;
+      // Pre-render dried/static drips
+      for (let i = 0; i < staticCount; i++) {
+        setTimeout(() => {
+          const sw = 1 + Math.random() * 3;
+          const h  = 10 + Math.random() * 52;
+          renderStaticDrip(c, 5 + Math.random() * 90, sw, h);
+        }, i * 80);
+      }
+      // Slow animated drip cycle
+      const cycle = () => {
+        spawnDrip(id);
+        setTimeout(cycle, interval + Math.random() * interval);
+      };
+      setTimeout(cycle, 800 + ci * 1500 + Math.random() * 2000);
+    });
+  }
+
+  initDrips();
 })();
 
 </script>
