@@ -65,7 +65,7 @@
     .drip-container {
       position: absolute;
       top: 100%; left: 0;
-      width: 100%; height: 60px;
+      width: 100%; height: 160px;
       pointer-events: none;
       overflow: visible;
       z-index: 22;
@@ -855,15 +855,9 @@ function dateHash(str) {
     for (let i = 0; i < str.length; i++) {
         hash = ((hash << 5) + hash + str.charCodeAt(i)) >>> 0;
     }
-    // Finalizer: scrambles bits so consecutive inputs don't produce consecutive outputs
     hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b) >>> 0;
     hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b) >>> 0;
     return (hash ^ (hash >>> 16)) >>> 0;
-}
-
-// Padded date string YYYY-MM-DD — MUST match daily_album.js exactly
-function hashStr(d) {
-    return padKey(d);
 }
 
 // Padded date key for localStorage / display (YYYY-MM-DD)
@@ -871,8 +865,34 @@ function padKey(d) {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
+// Seeded Fisher-Yates shuffle of indices — deterministic per year
+function seededShuffle(length, seed) {
+    const a = Array.from({ length }, (_, i) => i);
+    let s = seed;
+    for (let i = length - 1; i > 0; i--) {
+        s = (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0);
+        s = (Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0);
+        s = (s ^ (s >>> 16)) >>> 0;
+        const j = s % (i + 1);
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
 function getAlbumForDate(d) {
-    return ALBUMS[dateHash(hashStr(d)) % ALBUMS.length];
+    const year  = d.getFullYear();
+    const order = seededShuffle(ALBUMS.length, dateHash(String(year)));
+    const start = new Date(year, 0, 1);
+    const day   = Math.floor((d - start) / 86400000);
+    let pos = day % order.length;
+    // Skip if same artist as previous day
+    if (day > 0) {
+        const prevPos = (day - 1) % order.length;
+        if (ALBUMS[order[pos]][1] === ALBUMS[order[prevPos]][1]) {
+            pos = (pos + 1) % order.length;
+        }
+    }
+    return ALBUMS[order[pos]];
 }
 
 function formatDateHeader(d) {
@@ -1296,8 +1316,8 @@ init();
     if (!c) return;
     const cx   = 5 + Math.random() * 90;
     const sw   = 1.5 + Math.random() * 3.8;
-    const maxH = 20 + Math.random() * 52;
-    const dur  = 5000 + Math.random() * 7000;   // 5–12 seconds
+    const maxH = 40 + Math.random() * 100;       // long enough to drip past tab bar
+    const dur  = 2000 + Math.random() * 3000;   // 2–5 seconds — visibly moving
     const col  = bloodColor();
     const id   = '_d' + Math.random().toString(36).slice(2);
     const W    = sw * 7 + 14;
@@ -1365,8 +1385,8 @@ init();
   function initDrips() {
     ensureFilter();
     const containers = [
-      { id: 'logo-drip-container', staticCount: 4, interval: 4000 },
-      { id: 'date-drip-container', staticCount: 3, interval: 6000 }
+      { id: 'logo-drip-container', staticCount: 4, interval: 2000 },
+      { id: 'date-drip-container', staticCount: 3, interval: 3000 }
     ];
     containers.forEach(({ id, staticCount, interval }, ci) => {
       const c = document.getElementById(id);
@@ -1375,7 +1395,7 @@ init();
       for (let i = 0; i < staticCount; i++) {
         setTimeout(() => {
           const sw = 1 + Math.random() * 3;
-          const h  = 10 + Math.random() * 52;
+          const h  = 20 + Math.random() * 110;
           renderStaticDrip(c, 5 + Math.random() * 90, sw, h);
         }, i * 80);
       }
