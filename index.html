@@ -1609,17 +1609,18 @@ const SERVICES = {
 };
 
 // ══════════════════════════════════════════════════════════════
-// ITUNES ARTWORK
+// ARTWORK — iTunes first, MusicBrainz/CAA fallback
 // ══════════════════════════════════════════════════════════════
 async function fetchArtwork(album, artist) {
+    const albumLower  = album.toLowerCase();
+    const artistLower = artist.toLowerCase();
+
+    // 1. Try iTunes — strict match only (artist must match)
     try {
         const q = encodeURIComponent(`${album} ${artist}`);
         const res = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=10`);
         const data = await res.json();
         if (data.results && data.results.length > 0) {
-            const albumLower  = album.toLowerCase();
-            const artistLower = artist.toLowerCase();
-            // Best match: exact album name + artist name
             const match =
                 data.results.find(r =>
                     r.collectionName?.toLowerCase() === albumLower &&
@@ -1628,22 +1629,27 @@ async function fetchArtwork(album, artist) {
                 data.results.find(r =>
                     r.collectionName?.toLowerCase().includes(albumLower) &&
                     r.artistName?.toLowerCase().includes(artistLower.split(' ')[0])
-                ) ||
-                data.results.find(r =>
-                    r.collectionName?.toLowerCase().includes(albumLower)
-                ) ||
-                data.results[0];
-            if (match.artworkUrl100) {
+                );
+            if (match?.artworkUrl100) {
                 return match.artworkUrl100.replace('100x100bb', '600x600bb');
             }
         }
-        // Artist-only fallback
-        const res2 = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=album&limit=5`);
-        const data2 = await res2.json();
-        if (data2.results && data2.results.length > 0) {
-            return data2.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+    } catch (e) {}
+
+    // 2. MusicBrainz + Cover Art Archive fallback
+    try {
+        const mbRes = await fetch(
+            `https://musicbrainz.org/ws/2/release-group?query=artist:"${encodeURIComponent(artist)}" AND releasegroup:"${encodeURIComponent(album)}"&fmt=json&limit=5`,
+            { headers: { 'User-Agent': 'slambeatsdotkill/1.0 (slambeatsdotkill.com)' } }
+        );
+        const mbData = await mbRes.json();
+        if (mbData['release-groups'] && mbData['release-groups'].length > 0) {
+            const mbid = mbData['release-groups'][0].id;
+            const caaRes = await fetch(`https://coverartarchive.org/release-group/${mbid}/front-500`);
+            if (caaRes.ok) return caaRes.url;
         }
     } catch (e) {}
+
     return null;
 }
 
