@@ -65,9 +65,9 @@
     .drip-container {
       position: absolute;
       top: 100%; left: 0;
-      width: 100%; height: 160px;
+      width: 100%; height: 55px;
       pointer-events: none;
-      overflow: visible;
+      overflow: hidden;
       z-index: 22;
     }
     /* drip shapes are now SVG — no CSS needed for .drip */
@@ -123,17 +123,22 @@
       background: rgba(8,2,4,0.98);
       backdrop-filter: blur(8px);
       border-bottom: 2px solid rgba(176,16,16,0.55);
-      padding: 0 16px;
+      padding: 0 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
+    .tab-nav::-webkit-scrollbar { display: none; }
     .tab-btn {
       background: none; border: none;
       color: var(--muted);
-      font-size: 12px; font-weight: 700;
-      letter-spacing: 1.5px; text-transform: uppercase;
-      padding: 13px 18px;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      padding: 13px 12px;
       cursor: pointer;
       border-bottom: 2px solid transparent;
       transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .tab-btn:hover  { color: var(--amber); }
     .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
@@ -302,6 +307,103 @@
     .arch-spotify { background: rgba(29,185,84,0.10); color: #1db954; border-color: rgba(29,185,84,0.22); }
     .arch-youtube { background: rgba(255,0,0,0.09);  color: #ff5555; border-color: rgba(255,80,80,0.2); }
 
+    /* ── Spotify embed ───────────────────────────────────────── */
+    .spotify-embed-wrap { margin-top: 24px; }
+    .section-label {
+      font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 10px;
+    }
+
+    /* ── Community metrics ───────────────────────────────────── */
+    .metrics-wrap { margin-top: 24px; }
+    .metrics-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 10px; margin-top: 10px;
+    }
+    .metric-card {
+      background: var(--card); border: 1px solid var(--cborder);
+      border-radius: 10px; padding: 14px; text-align: center;
+    }
+    .metric-number { font-size: 28px; font-weight: 800; color: var(--red); display: block; }
+    .metric-label  { font-size: 10px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; display: block; }
+
+    /* ── Comment system ──────────────────────────────────────── */
+    .comments-wrap { margin-top: 24px; }
+    #comment-input {
+      width: 100%; background: rgba(14,6,6,0.88);
+      border: 1px solid rgba(139,50,30,0.3); border-radius: 10px;
+      color: #f0e6d3; font-size: 14px; padding: 12px;
+      resize: none; font-family: inherit;
+    }
+    #comment-input:focus { outline: none; border-color: var(--red); }
+    .comment-input-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 6px; margin-bottom: 14px;
+    }
+    #comment-char-count { font-size: 11px; color: var(--muted); }
+    #comment-submit-btn {
+      background: var(--red); color: #fff; border: none;
+      padding: 8px 20px; border-radius: 6px; font-size: 12px;
+      font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer;
+    }
+    #comment-submit-btn:hover { background: #a01010; }
+    .comment-entry {
+      background: var(--card); border: 1px solid var(--cborder);
+      border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .comment-mine { border-color: rgba(180,20,20,0.5); }
+    .comment-header {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    }
+    .comment-username { font-size: 12px; font-weight: 700; color: var(--amber); }
+    .comment-badges   { display: flex; gap: 4px; }
+    .badge-pill {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+      padding: 2px 6px; border-radius: 3px; text-transform: uppercase;
+      background: rgba(180,20,20,0.2); color: #cc5555;
+      border: 1px solid rgba(180,20,20,0.3);
+    }
+    .comment-text { font-size: 13px; color: #f0e6d3; line-height: 1.5; }
+    .comment-time { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Coming soon panels ──────────────────────────────────── */
+    .coming-soon-wrap { text-align: center; padding: 80px 20px; }
+    .coming-soon-title {
+      font-size: 28px; font-weight: 800; letter-spacing: 4px;
+      color: var(--red); text-transform: uppercase; margin-bottom: 12px;
+    }
+    .coming-soon-sub { font-size: 14px; color: var(--muted); letter-spacing: 0.5px; }
+
+    /* ── Username modal ──────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.85); display: flex;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .modal-box {
+      background: #120408; border: 1px solid rgba(180,20,20,0.5);
+      border-radius: 14px; padding: 32px 28px; max-width: 340px; width: 90%;
+      text-align: center;
+    }
+    .modal-title { font-size: 18px; font-weight: 800; letter-spacing: 3px; color: var(--amber); margin-bottom: 8px; }
+    .modal-sub   { font-size: 12px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+    #username-input {
+      width: 100%; background: rgba(14,6,6,0.88);
+      border: 1px solid rgba(139,50,30,0.3); border-radius: 8px;
+      color: #f0e6d3; font-size: 16px; padding: 12px;
+      text-align: center; font-family: inherit; margin-bottom: 8px;
+    }
+    #username-input:focus { outline: none; border-color: var(--red); }
+    .modal-error { font-size: 11px; color: var(--red); min-height: 16px; margin-bottom: 12px; }
+    #username-confirm-btn {
+      width: 100%; background: var(--red); color: #fff; border: none;
+      padding: 14px; border-radius: 8px; font-size: 13px;
+      font-weight: 800; letter-spacing: 2px; cursor: pointer;
+    }
+    #username-confirm-btn:hover { background: #a01010; }
+
     /* ── Ratings panel ───────────────────────────────────────── */
     .ratings-empty {
       text-align: center; color: var(--muted);
@@ -360,13 +462,15 @@
 
 <!-- ── Tab Nav ── -->
 <nav class="tab-nav">
-  <button class="tab-btn active" id="tab-today"   onclick="switchTab('today')">Today</button>
-  <button class="tab-btn"        id="tab-archive" onclick="switchTab('archive')">Archive</button>
-  <button class="tab-btn"        id="tab-ratings" onclick="switchTab('ratings')">Ratings</button>
+  <button class="tab-btn active" id="tab-kill-floor"  onclick="switchTab('kill-floor')">The Kill Floor</button>
+  <button class="tab-btn"        id="tab-pit"         onclick="switchTab('pit')">The Pit</button>
+  <button class="tab-btn"        id="tab-fresh-blood" onclick="switchTab('fresh-blood')">Fresh Blood</button>
+  <button class="tab-btn"        id="tab-crypt"       onclick="switchTab('crypt')">The Crypt</button>
+  <button class="tab-btn"        id="tab-chosen"      onclick="switchTab('chosen')">The Chosen</button>
 </nav>
 
-<!-- ════════════════ TODAY PANEL ════════════════ -->
-<div class="tab-panel" id="panel-today">
+<!-- ════════════════ KILL FLOOR PANEL ════════════════ -->
+<div class="tab-panel" id="panel-kill-floor">
   <div class="album-card">
 
     <!-- Artwork -->
@@ -443,23 +547,102 @@
     </div>
 
   </div><!-- /album-card -->
+
+  <!-- Spotify Playlist Embed -->
+  <div class="spotify-embed-wrap">
+    <p class="section-label">THE PLAYLIST</p>
+    <iframe
+      src="https://open.spotify.com/embed/playlist/4mZFXJ8NgaKQ01SxZBdAAX?utm_source=generator&theme=0"
+      width="100%"
+      height="352"
+      frameBorder="0"
+      allowfullscreen=""
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"
+      style="border-radius:12px;">
+    </iframe>
+  </div>
+
+  <!-- Community Metrics -->
+  <div class="metrics-wrap" id="metrics-wrap">
+    <p class="section-label">COMMUNITY PULSE</p>
+    <div class="metrics-grid" id="metrics-grid">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+  <!-- Comments -->
+  <div class="comments-wrap" id="comments-wrap">
+    <p class="section-label">THE PIT TALK</p>
+    <div id="comment-input-area">
+      <textarea id="comment-input" placeholder="Say something about today's album... (no drama, music only)" maxlength="280" rows="3"></textarea>
+      <div class="comment-input-footer">
+        <span id="comment-char-count">280</span>
+        <button id="comment-submit-btn" onclick="submitComment()">Post</button>
+      </div>
+    </div>
+    <div id="comments-list"></div>
+  </div>
+
   <p class="footer">Metal Today. Metal Tomorrow. Metal Forever.</p>
 </div>
 
-<!-- ════════════════ ARCHIVE PANEL ════════════════ -->
-<div class="tab-panel hidden" id="panel-archive">
+<!-- ════════════════ THE PIT PANEL ════════════════ -->
+<div class="tab-panel hidden" id="panel-pit">
+  <div class="coming-soon-wrap">
+    <p class="coming-soon-title">THE PIT</p>
+    <p class="coming-soon-sub">Stickers. Merch. Mystery packs. Coming soon.</p>
+  </div>
+</div>
+
+<!-- ════════════════ FRESH BLOOD PANEL ════════════════ -->
+<div class="tab-panel hidden" id="panel-fresh-blood">
+  <div class="coming-soon-wrap">
+    <p class="coming-soon-title">FRESH BLOOD</p>
+    <p class="coming-soon-sub">Issue 001 drops September 1, 2026.</p>
+  </div>
+</div>
+
+<!-- ════════════════ THE CRYPT PANEL (formerly Archive) ════════════════ -->
+<div class="tab-panel hidden" id="panel-crypt">
   <p class="panel-heading" id="archive-heading">Previous Albums</p>
   <div id="archive-list"></div>
 </div>
 
-<!-- ════════════════ RATINGS PANEL ════════════════ -->
-<div class="tab-panel hidden" id="panel-ratings">
-  <p class="panel-heading">Community Ratings</p>
-  <div id="ratings-list"></div>
+<!-- ════════════════ THE CHOSEN PANEL ════════════════ -->
+<div class="tab-panel hidden" id="panel-chosen">
+  <div class="coming-soon-wrap">
+    <p class="coming-soon-title">THE CHOSEN</p>
+    <p class="coming-soon-sub">Artist features. The first one is coming.</p>
+  </div>
 </div>
 
 
+<!-- ── Username Modal ── -->
+<div id="username-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <p class="modal-title">CHOOSE YOUR HANDLE</p>
+    <p class="modal-sub">No real name. No email. Just a name for the community.</p>
+    <input type="text" id="username-input" maxlength="20" placeholder="your handle" autocomplete="off">
+    <p id="username-error" class="modal-error"></p>
+    <button id="username-confirm-btn" onclick="confirmUsername()">ENTER THE PIT</button>
+  </div>
+</div>
+
 <script>
+// SUPABASE SETUP REQUIRED:
+// Run in Supabase SQL editor:
+// CREATE TABLE IF NOT EXISTS users (user_id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW());
+// CREATE TABLE IF NOT EXISTS comments (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, user_id TEXT NOT NULL, album_date DATE NOT NULL, comment TEXT NOT NULL CHECK(length(comment) <= 280), created_at TIMESTAMPTZ DEFAULT NOW());
+// CREATE INDEX IF NOT EXISTS comments_album_date_idx ON comments(album_date);
+// Also enable RLS and add policies:
+// ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+// ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+// CREATE POLICY "Public read users" ON users FOR SELECT USING (true);
+// CREATE POLICY "Insert own user" ON users FOR INSERT WITH CHECK (true);
+// CREATE POLICY "Public read comments" ON comments FOR SELECT USING (true);
+// CREATE POLICY "Insert comments" ON comments FOR INSERT WITH CHECK (true);
+
 // ══════════════════════════════════════════════════════════════
 // ALBUM LIST  (must match daily_album.js exactly)
 // ══════════════════════════════════════════════════════════════
@@ -913,7 +1096,7 @@ const SERVICES = {
     spotify: {
         name: 'Spotify',
         url: (album, artist) =>
-            `https://open.spotify.com/search/${encodeURIComponent(album + ' ' + artist)}`,
+            `https://open.spotify.com/playlist/4mZFXJ8NgaKQ01SxZBdAAX`,
         icon: `<rect width="24" height="24" rx="12" fill="#1db954"/><path d="M17 13.1c-2.6-1.5-6.4-1.9-9-1.1-.4.1-.7-.1-.8-.4-.1-.4.1-.7.4-.8 3-.9 7.1-.5 9.9 1.3.3.2.4.7.2 1-.2.3-.5.4-.7.2zm-.6 2.3c-.2.3-.6.4-.9.2-2.2-1.3-5.4-1.7-8-1-.3.1-.7-.1-.8-.4-.1-.3.1-.7.4-.8 2.9-.8 6.4-.4 8.9 1 .3.2.4.6.2.9zm-.9 2.1c-.2.3-.5.3-.7.2-1.9-1.1-4.2-1.4-7-.8-.3.1-.5-.1-.6-.4-.1-.3.1-.5.4-.6 3-.7 5.6-.3 7.7.9.2.2.3.5.2.7z" fill="#fff"/>`
     },
     youtube: {
@@ -1036,24 +1219,27 @@ async function loadCommunityRating() {
 }
 
 async function setRating(val) {
-    // Save locally so it persists across refreshes for this browser
-    localStorage.setItem(RATING_PREFIX + padKey(new Date()), String(val));
-    applyStarState(val);
-    // Upsert to Supabase — unique on (date, user_id) so changing rating replaces, not adds
-    try {
-        const today = new Date();
-        const [album, artist] = getAlbumForDate(today);
-        const uid = getUserId();
-        await fetch(`${SUPABASE_URL}/rest/v1/ratings`, {
-            method: 'POST',
-            headers: { ...SB_HEADERS, 'Prefer': 'return=minimal,resolution=merge-duplicates' },
-            body: JSON.stringify({ date: padKey(today), album, artist, rating: val, user_id: uid })
-        });
-        ratingsCache = null;
-        await loadCommunityRating();
-    } catch(e) {}
-    if (!document.getElementById('panel-archive').classList.contains('hidden')) buildArchivePanel();
-    if (!document.getElementById('panel-ratings').classList.contains('hidden')) buildRatingsPanel();
+    requireUsername(async () => {
+        // Save locally so it persists across refreshes for this browser
+        localStorage.setItem(RATING_PREFIX + padKey(new Date()), String(val));
+        applyStarState(val);
+        // Upsert to Supabase — unique on (date, user_id) so changing rating replaces, not adds
+        try {
+            const today = new Date();
+            const [album, artist] = getAlbumForDate(today);
+            const uid = getUserId();
+            await fetch(`${SUPABASE_URL}/rest/v1/ratings`, {
+                method: 'POST',
+                headers: { ...SB_HEADERS, 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+                body: JSON.stringify({ date: padKey(today), album, artist, rating: val, user_id: uid })
+            });
+            ratingsCache = null;
+            await loadCommunityRating();
+            const cache = await fetchAllRatings();
+            renderMetrics(cache);
+        } catch(e) {}
+        if (!document.getElementById('panel-crypt').classList.contains('hidden')) buildArchivePanel();
+    });
 }
 
 function initStarHover() {
@@ -1067,6 +1253,152 @@ function initStarHover() {
             stars.forEach(ss => ss.classList.remove('lit'));
             applyStarState(getRatingForDate(new Date()));
         });
+    });
+}
+
+// ══════════════════════════════════════════════════════════════
+// DATE HELPER
+// ══════════════════════════════════════════════════════════════
+function getTodayStr() {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
+}
+
+// ══════════════════════════════════════════════════════════════
+// USERNAME SYSTEM
+// ══════════════════════════════════════════════════════════════
+function getUsername() {
+    return localStorage.getItem('slambeats_username');
+}
+
+function requireUsername(callback) {
+    if (getUsername()) { callback(); return; }
+    document.getElementById('username-modal').style.display = 'flex';
+    window._usernameCallback = callback;
+}
+
+async function confirmUsername() {
+    const input = document.getElementById('username-input').value.trim();
+    const errEl = document.getElementById('username-error');
+    if (!input || input.length < 2) { errEl.textContent = 'At least 2 characters.'; return; }
+    if (!/^[a-zA-Z0-9_\-\.]+$/.test(input)) { errEl.textContent = 'Letters, numbers, _ - . only.'; return; }
+    localStorage.setItem('slambeats_username', input);
+    try {
+        await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+            method: 'POST',
+            headers: { ...SB_HEADERS, 'Prefer': 'resolution=ignore-duplicates' },
+            body: JSON.stringify({ user_id: getUserId(), username: input })
+        });
+    } catch(e) {}
+    document.getElementById('username-modal').style.display = 'none';
+    if (window._usernameCallback) { window._usernameCallback(); window._usernameCallback = null; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// BADGE SYSTEM
+// ══════════════════════════════════════════════════════════════
+const BADGES = [
+    { id: 'first_cut',   label: 'The First Cut',  check: (stats) => stats.totalRatings >= 1 },
+    { id: 'fresh_wound', label: 'Fresh Wound',     check: (stats) => stats.maxStreak >= 7 },
+    { id: 'bleeding',    label: 'Bleeding',        check: (stats) => stats.maxStreak >= 30 },
+    { id: 'hemorrhage',  label: 'Hemorrhage',      check: (stats) => stats.totalRatings >= 100 },
+    { id: 'transfusion', label: 'Transfusion',     check: (stats) => stats.totalComments >= 50 },
+    { id: 'lifer',       label: 'Lifer',           check: (stats) => stats.maxStreak >= 365 },
+];
+
+function getUserBadges(stats) {
+    return BADGES.filter(b => b.check(stats)).map(b => b.label);
+}
+
+// ══════════════════════════════════════════════════════════════
+// COMMUNITY METRICS
+// ══════════════════════════════════════════════════════════════
+async function renderMetrics(cache) {
+    const grid = document.getElementById('metrics-grid');
+    if (!grid) return;
+    const allDates = Object.keys(cache);
+    const totalRatings = allDates.reduce((s, d) => s + cache[d].count, 0);
+    const albumsRated  = allDates.length;
+    const today        = getTodayStr();
+    const todayVotes   = cache[today] ? cache[today].count : 0;
+    const allVals      = allDates.flatMap(d => cache[d].ratings.map(r => r.rating));
+    const avgScore     = allVals.length > 0 ? (allVals.reduce((s,v)=>s+v,0)/allVals.length).toFixed(1) : '—';
+
+    grid.innerHTML = [
+        { n: totalRatings, l: 'Total Ratings' },
+        { n: albumsRated,  l: 'Albums Rated' },
+        { n: todayVotes,   l: "Today's Votes" },
+        { n: avgScore,     l: 'Avg Score' },
+    ].map(m => `<div class="metric-card">
+        <span class="metric-number">${m.n}</span>
+        <span class="metric-label">${m.l}</span>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// COMMENT SYSTEM
+// ══════════════════════════════════════════════════════════════
+async function loadComments(date) {
+    try {
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/comments?select=user_id,comment,created_at&album_date=eq.${date}&order=created_at.asc`,
+            { headers: SB_HEADERS }
+        );
+        const data = await res.json();
+        const userIds = [...new Set(data.map(c => c.user_id))];
+        let usernameMap = {};
+        if (userIds.length > 0) {
+            const uRes = await fetch(
+                `${SUPABASE_URL}/rest/v1/users?user_id=in.(${userIds.join(',')})&select=user_id,username`,
+                { headers: SB_HEADERS }
+            );
+            const uData = await uRes.json();
+            uData.forEach(u => { usernameMap[u.user_id] = u.username; });
+        }
+        renderComments(data, usernameMap, date);
+    } catch(e) { console.error(e); }
+}
+
+function renderComments(comments, usernameMap, date) {
+    const el = document.getElementById('comments-list');
+    if (!comments || comments.length === 0) {
+        el.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">No comments yet. Be first.</p>';
+        return;
+    }
+    el.innerHTML = comments.map(c => {
+        const uname = usernameMap[c.user_id] || 'unknown';
+        const time  = new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const isMe  = c.user_id === getUserId();
+        return `<div class="comment-entry${isMe ? ' comment-mine' : ''}">
+          <div class="comment-header">
+            <span class="comment-username">${uname}${isMe ? ' (you)' : ''}</span>
+          </div>
+          <div class="comment-text">${escapeHtml(c.comment)}</div>
+          <div class="comment-time">${time}</div>
+        </div>`;
+    }).join('');
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function submitComment() {
+    requireUsername(async () => {
+        const input = document.getElementById('comment-input');
+        const text  = input.value.trim();
+        if (!text || text.length < 2) return;
+        const today = getTodayStr();
+        try {
+            await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
+                method: 'POST',
+                headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+                body: JSON.stringify({ user_id: getUserId(), album_date: today, comment: text })
+            });
+            input.value = '';
+            document.getElementById('comment-char-count').textContent = '280';
+            await loadComments(today);
+        } catch(e) { console.error(e); }
     });
 }
 
@@ -1170,12 +1502,11 @@ async function buildRatingsPanel() {
 // TAB SWITCHING
 // ══════════════════════════════════════════════════════════════
 function switchTab(name) {
-    ['today', 'archive', 'ratings'].forEach(t => {
+    ['kill-floor', 'pit', 'fresh-blood', 'crypt', 'chosen'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
         document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
     });
-    if (name === 'archive') buildArchivePanel();
-    if (name === 'ratings') buildRatingsPanel();
+    if (name === 'crypt') buildArchivePanel();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1243,6 +1574,18 @@ async function init() {
     if (savedRating) applyStarState(parseInt(savedRating));
     initStarHover();
     loadCommunityRating();
+
+    // Metrics
+    const cache = await fetchAllRatings();
+    renderMetrics(cache);
+
+    // Comments
+    loadComments(getTodayStr());
+
+    // Comment char count
+    document.getElementById('comment-input').addEventListener('input', function() {
+        document.getElementById('comment-char-count').textContent = 280 - this.value.length;
+    });
 }
 
 init();
@@ -1316,7 +1659,7 @@ init();
     if (!c) return;
     const cx   = 5 + Math.random() * 90;
     const sw   = 1.5 + Math.random() * 3.8;
-    const maxH = 40 + Math.random() * 100;       // long enough to drip past tab bar
+    const maxH = 15 + Math.random() * 38;         // stays within header zone
     const dur  = 2000 + Math.random() * 3000;   // 2–5 seconds — visibly moving
     const col  = bloodColor();
     const id   = '_d' + Math.random().toString(36).slice(2);
@@ -1395,7 +1738,7 @@ init();
       for (let i = 0; i < staticCount; i++) {
         setTimeout(() => {
           const sw = 1 + Math.random() * 3;
-          const h  = 20 + Math.random() * 110;
+          const h  = 8 + Math.random() * 44;
           renderStaticDrip(c, 5 + Math.random() * 90, sw, h);
         }, i * 80);
       }
