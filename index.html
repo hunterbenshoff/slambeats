@@ -467,6 +467,9 @@
       font-family: sans-serif;
     }
 
+    /* ── Killing Floor archive ───────────────────────────────── */
+    .killing-archive-wrap { margin-top: 32px; }
+
     /* ── Footer ──────────────────────────────────────────────── */
     .footer {
       text-align: center; font-size: 11px;
@@ -655,6 +658,25 @@
       margin-bottom: 6px;
     }
 
+    /* ── The Crypt — issues catalog ─────────────────────────────── */
+    .crypt-empty {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .crypt-empty-title {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: rgba(180,20,20,0.4);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .crypt-empty-sub {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
     /* ── The Pit — shop ──────────────────────────────────────────── */
     .shop-header {
       padding: 8px 0 28px;
@@ -724,15 +746,15 @@
 
 <!-- ── Tab Nav ── -->
 <nav class="tab-nav">
-  <button class="tab-btn active" id="tab-kill-floor"  onclick="switchTab('kill-floor')">The Kill Floor</button>
+  <button class="tab-btn active" id="tab-killing-floor"  onclick="switchTab('killing-floor')">The Killing Floor</button>
   <button class="tab-btn"        id="tab-chosen"      onclick="switchTab('chosen')">The Chosen</button>
   <button class="tab-btn"        id="tab-fresh-blood" onclick="switchTab('fresh-blood')">Fresh Blood</button>
   <button class="tab-btn"        id="tab-crypt"       onclick="switchTab('crypt')">The Crypt</button>
   <button class="tab-btn"        id="tab-pit"         onclick="switchTab('pit')">The Pit</button>
 </nav>
 
-<!-- ════════════════ KILL FLOOR PANEL ════════════════ -->
-<div class="tab-panel" id="panel-kill-floor">
+<!-- ════════════════ KILLING FLOOR PANEL ════════════════ -->
+<div class="tab-panel" id="panel-killing-floor">
   <div class="album-card">
 
     <!-- Artwork -->
@@ -847,6 +869,11 @@
     <div id="comments-list"></div>
   </div>
 
+  <div class="killing-archive-wrap">
+    <p class="section-label">THE ARCHIVE</p>
+    <div id="killing-archive-list"></div>
+  </div>
+
   <p class="footer">Metal Today. Metal Tomorrow. Metal Forever.</p>
 </div>
 
@@ -907,14 +934,26 @@
 
 </div>
 
-<!-- ════════════════ THE CRYPT PANEL (formerly Archive) ════════════════ -->
+<!-- ════════════════ THE CRYPT PANEL ════════════════ -->
 <div class="tab-panel hidden" id="panel-crypt">
+
   <div class="crypt-header">
     <h2 class="crypt-title">THE CRYPT</h2>
-    <p class="panel-heading" id="archive-heading">Every album. Every rating. The full record.</p>
+    <p class="panel-heading">Every issue. The permanent record.</p>
   </div>
-  <div id="archive-list"></div>
+
+  <!-- Issues will populate here when they exist -->
+  <div id="crypt-issues-list">
+    <div class="crypt-empty">
+      <p class="crypt-empty-title">THE ARCHIVE AWAITS</p>
+      <p class="crypt-empty-sub">Issue 001 drops September 1, 2026. It will live here forever.</p>
+    </div>
+  </div>
+
 </div>
+
+<!-- Hidden archive list for JS population -->
+<div id="archive-list" style="display:none"></div>
 
 <!-- ════════════════ THE CHOSEN PANEL ════════════════ -->
 <div class="tab-panel hidden" id="panel-chosen">
@@ -1590,7 +1629,7 @@ async function setRating(val) {
             const cache = await fetchAllRatings();
             renderMetrics(cache);
         } catch(e) {}
-        if (!document.getElementById('panel-crypt').classList.contains('hidden')) buildArchivePanel();
+        if (!document.getElementById('panel-crypt').classList.contains('hidden') || !document.getElementById('panel-killing-floor').classList.contains('hidden')) buildArchivePanel();
     });
 }
 
@@ -1855,11 +1894,11 @@ async function buildArchivePanel() {
 
     if (entries.length === 0) {
         list.innerHTML = '<p style="color:var(--muted);padding:32px 0;text-align:center;font-size:13px">No previous albums yet.<br>Come back tomorrow!</p>';
-        document.getElementById('archive-heading').textContent = 'Previous Albums';
+        const killingArchiveElEmpty = document.getElementById('killing-archive-list');
+        if (killingArchiveElEmpty) killingArchiveElEmpty.innerHTML = list.innerHTML;
         return;
     }
 
-    document.getElementById('archive-heading').textContent = `Previous Albums  ·  ${entries.length} days`;
     list.innerHTML = entries.map(e => {
         const ratingHtml = e.cr
             ? `<div class="archive-stars" title="${e.cr.avg.toFixed(1)}/5 · ${e.cr.count} ratings">\u2620\uFE0E${e.cr.avg.toFixed(1)}</div>`
@@ -1879,6 +1918,8 @@ async function buildArchivePanel() {
             ${ratingHtml}
           </div>`;
     }).join('');
+    const killingArchiveEl = document.getElementById('killing-archive-list');
+    if (killingArchiveEl) killingArchiveEl.innerHTML = document.getElementById('archive-list').innerHTML;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1930,11 +1971,12 @@ async function buildRatingsPanel() {
 // TAB SWITCHING
 // ══════════════════════════════════════════════════════════════
 function switchTab(name) {
-    ['kill-floor', 'pit', 'fresh-blood', 'crypt', 'chosen'].forEach(t => {
+    ['killing-floor', 'pit', 'fresh-blood', 'crypt', 'chosen'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
         document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
     });
     if (name === 'crypt') buildArchivePanel();
+    if (name === 'killing-floor') buildArchivePanel();
 }
 
 // ══════════════════════════════════════════════════════════════
