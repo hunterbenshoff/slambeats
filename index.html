@@ -742,6 +742,7 @@
     <span class="nosifer-text date-text" id="date-display"></span>
     <div class="drip-container" id="date-drip-container"></div>
   </div>
+  <button id="sound-toggle-btn" onclick="toggleSound()" title="Toggle album drop sound" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:rgba(140,80,80,0.5);font-size:16px;transition:color 0.2s;" aria-label="Toggle sound">🔔</button>
 </header>
 
 <!-- ── Tab Nav ── -->
@@ -1033,6 +1034,7 @@
 // CREATE POLICY "Insert own user" ON users FOR INSERT WITH CHECK (true);
 // CREATE POLICY "Public read comments" ON comments FOR SELECT USING (true);
 // CREATE POLICY "Insert comments" ON comments FOR INSERT WITH CHECK (true);
+// ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_service TEXT;
 
 // ══════════════════════════════════════════════════════════════
 // ALBUM LIST  (must match daily_album.js exactly)
@@ -1735,7 +1737,7 @@ async function confirmLogin() {
 
     try {
         const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(username)}&password_hash=eq.${pinHash}&select=user_id,username`,
+            `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(username)}&password_hash=eq.${pinHash}&select=user_id,username,preferred_service`,
             { headers: SB_HEADERS }
         );
         const data = await res.json();
@@ -1747,6 +1749,10 @@ async function confirmLogin() {
         const user = data[0];
         localStorage.setItem('slambeats_uid', user.user_id);
         localStorage.setItem('slambeats_username', user.username);
+        // Restore streaming service preference
+        if (user.preferred_service) {
+            localStorage.setItem('slambeats_service', user.preferred_service);
+        }
     } catch(e) {
         errEl.textContent = 'Something went wrong. Try again.';
         return;
@@ -1984,6 +1990,14 @@ function switchTab(name) {
 // ══════════════════════════════════════════════════════════════
 function pickService(serviceKey) {
     localStorage.setItem('dailyalbum_service', serviceKey);
+    // Save service preference to Supabase if logged in
+    if (getUsername()) {
+        fetch(`${SUPABASE_URL}/rest/v1/users?user_id=eq.${getUserId()}`, {
+            method: 'PATCH',
+            headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ preferred_service: serviceKey })
+        }).catch(() => {});
+    }
     const [album, artist] = getAlbumForDate(new Date());
     showListenView(serviceKey, album, artist);
     window.open(SERVICES[serviceKey].url(album, artist), '_blank');
@@ -2223,6 +2237,105 @@ init();
 
   initDrips();
 })();
+
+// ══════════════════════════════════════════════════════════════
+// CHURCH BELL SOUND — new album day notification
+// ══════════════════════════════════════════════════════════════
+let soundEnabled = localStorage.getItem('slambeats_sound') === 'true';
+let bellPlayed   = false;
+
+function updateSoundBtn() {
+    const btn = document.getElementById('sound-toggle-btn');
+    if (!btn) return;
+    btn.style.color = soundEnabled ? 'rgba(200,20,20,0.8)' : 'rgba(140,80,80,0.35)';
+    btn.title = soundEnabled ? 'Sound ON — click to mute' : 'Sound OFF — click to enable';
+}
+
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem('slambeats_sound', soundEnabled);
+    updateSoundBtn();
+    if (soundEnabled && !bellPlayed) playChurchBell();
+}
+
+function playChurchBell() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        bellPlayed = true;
+
+        // Church bell — sum of inharmonic partials with exponential decay
+        const bellPartials = [
+            { freq: 220,  gain: 0.6,  decay: 4.0 },
+            { freq: 440,  gain: 0.4,  decay: 3.0 },
+            { freq: 587,  gain: 0.25, decay: 2.5 },
+            { freq: 880,  gain: 0.15, decay: 2.0 },
+            { freq: 1320, gain: 0.08, decay: 1.5 },
+        ];
+
+        const masterGain = ctx.createGain();
+        masterGain.gain.setValueAtTime(0.5, ctx.currentTime);
+        masterGain.connect(ctx.destination);
+
+        bellPartials.forEach(({ freq, gain, decay }) => {
+            const osc = ctx.createOscillator();
+            const g   = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            g.gain.setValueAtTime(gain, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + decay);
+            osc.connect(g);
+            g.connect(masterGain);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + decay);
+        });
+
+        // Electric low hum — the "juice" undercurrent
+        const hum = ctx.createOscillator();
+        const humGain = ctx.createGain();
+        hum.type = 'sawtooth';
+        hum.frequency.setValueAtTime(55, ctx.currentTime);
+        humGain.gain.setValueAtTime(0.12, ctx.currentTime);
+        humGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 2.5);
+        hum.connect(humGain);
+        humGain.connect(masterGain);
+        hum.start(ctx.currentTime);
+        hum.stop(ctx.currentTime + 2.5);
+
+        // Electric crackle — brief burst of noise at start
+        const bufferSize = ctx.sampleRate * 0.15;
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.08, ctx.currentTime);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
+        noise.connect(noiseGain);
+        noiseGain.connect(masterGain);
+        noise.start(ctx.currentTime);
+
+    } catch(e) { console.warn('Audio context failed:', e); }
+}
+
+// Check if this is a new album day and sound should play
+function checkAndPlayBell() {
+    if (!soundEnabled) return;
+    const lastBellDate = localStorage.getItem('slambeats_bell_date');
+    const todayStr = getTodayStr();
+    if (lastBellDate !== todayStr) {
+        localStorage.setItem('slambeats_bell_date', todayStr);
+        setTimeout(() => playChurchBell(), 800);
+    }
+}
+
+// Init sound button state on page load
+document.addEventListener('DOMContentLoaded', () => {
+    updateSoundBtn();
+    checkAndPlayBell();
+});
 
 </script>
 
