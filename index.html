@@ -814,7 +814,6 @@
     <span class="nosifer-text date-text" id="date-display"></span>
     <div class="drip-container" id="date-drip-container"></div>
   </div>
-  <button id="profile-btn" onclick="openProfile()" title="Your profile" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:rgba(140,80,80,0.5);font-size:18px;transition:color 0.2s;line-height:1;" aria-label="Profile">👤</button>
 </header>
 
 <!-- ── Tab Nav ── -->
@@ -824,6 +823,7 @@
   <button class="tab-btn"        id="tab-fresh-blood" onclick="switchTab('fresh-blood')">Fresh Blood</button>
   <button class="tab-btn"        id="tab-crypt"       onclick="switchTab('crypt')">The Crypt</button>
   <button class="tab-btn"        id="tab-pit"         onclick="switchTab('pit')">The Pit</button>
+  <button class="tab-btn"        id="tab-profile"     onclick="switchTab('profile')">Profile</button>
 </nav>
 
 <!-- ════════════════ KILLING FLOOR PANEL ════════════════ -->
@@ -1093,10 +1093,9 @@
   </div>
 </div>
 
-<!-- ── Profile Panel ── -->
-<div id="profile-panel">
-  <div class="profile-box">
-    <button class="profile-close" onclick="closeProfile()">✕</button>
+<!-- ════════════════ PROFILE PANEL ════════════════ -->
+<div class="tab-panel hidden" id="panel-profile">
+  <div class="profile-box" style="margin:0 auto">
     <!-- Logged-in view -->
     <div id="profile-logged-in" style="display:none">
       <div class="profile-handle" id="profile-handle-text"></div>
@@ -1116,7 +1115,7 @@
     <div id="profile-logged-out">
       <div class="profile-handle" style="margin-bottom:16px">WHO ARE YOU?</div>
       <div class="profile-not-logged">No handle yet. Register or log in to track your ratings, earn badges, and leave your mark.</div>
-      <button class="profile-login-btn" onclick="closeProfile(); document.getElementById('username-modal').style.display='flex';">ENTER THE PIT</button>
+      <button class="profile-login-btn" onclick="document.getElementById('username-modal').style.display='flex';">ENTER THE PIT</button>
     </div>
   </div>
 </div>
@@ -1779,16 +1778,11 @@ function logoutUser() {
     localStorage.removeItem('slambeats_uid');
     localStorage.removeItem('slambeats_username');
     localStorage.removeItem('slambeats_service');
-    closeProfile();
-    // Update profile button tint
-    const btn = document.getElementById('profile-btn');
-    if (btn) btn.style.color = 'rgba(140,80,80,0.5)';
+    switchTab('killing-floor');
 }
 
-// ── PROFILE PANEL ─────────────────────────────────────────────
+// ── PROFILE TAB ───────────────────────────────────────────────
 async function openProfile() {
-    const panel = document.getElementById('profile-panel');
-    panel.classList.add('open');
 
     const username = getUsername();
     const uid      = getUserId();
@@ -1868,13 +1862,8 @@ async function openProfile() {
 }
 
 function closeProfile() {
-    document.getElementById('profile-panel').classList.remove('open');
+    // Profile is now a tab — no overlay to close
 }
-
-// Close profile on backdrop click
-document.getElementById('profile-panel').addEventListener('click', function(e) {
-    if (e.target === this) closeProfile();
-});
 
 // ── PASSWORD HASHING ──────────────────────────────────────────
 async function hashPin(pin) {
@@ -1978,13 +1967,6 @@ function closeModalAndProceed() {
     playChurchBell();
 }
 
-// On page load, light up profile button if already logged in
-document.addEventListener('DOMContentLoaded', () => {
-    if (getUsername()) {
-        const btn = document.getElementById('profile-btn');
-        if (btn) btn.style.color = 'rgba(200,20,20,0.75)';
-    }
-});
 
 // ══════════════════════════════════════════════════════════════
 // BADGE SYSTEM
@@ -2260,12 +2242,13 @@ async function buildRatingsPanel() {
 // TAB SWITCHING
 // ══════════════════════════════════════════════════════════════
 function switchTab(name) {
-    ['killing-floor', 'pit', 'fresh-blood', 'crypt', 'chosen'].forEach(t => {
+    ['killing-floor', 'pit', 'fresh-blood', 'crypt', 'chosen', 'profile'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
         document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
     });
     if (name === 'crypt') buildArchivePanel();
     if (name === 'killing-floor') buildArchivePanel();
+    if (name === 'profile') openProfile();
 }
 
 // ══════════════════════════════════════════════════════════════
