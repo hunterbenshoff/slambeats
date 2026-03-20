@@ -1591,7 +1591,7 @@ const SERVICES = {
     apple: {
         name: 'Apple Music',
         url: (album, artist) =>
-            `https://music.apple.com/search?term=${encodeURIComponent(album + ' ' + artist)}`,
+            `https://music.apple.com/search?term=${encodeURIComponent(album)}`,
         icon: `<rect width="24" height="24" rx="5" fill="#fc3c44"/><path d="M16 7H9v7.75c-.32-.13-.67-.25-1-.25-1.66 0-3 1.12-3 2.5s1.34 2.5 3 2.5 3-1.12 3-2.5V9.5h4V7z" fill="#fff"/>`
     },
     spotify: {
@@ -1603,7 +1603,7 @@ const SERVICES = {
     youtube: {
         name: 'YouTube Music',
         url: (album, artist) =>
-            `https://music.youtube.com/search?q=${encodeURIComponent(album + ' ' + artist)}`,
+            `https://music.youtube.com/search?q=${encodeURIComponent(album)}`,
         icon: `<rect width="24" height="24" rx="12" fill="#ff0000"/><circle cx="12" cy="12" r="5" fill="#fff"/><circle cx="12" cy="12" r="3" fill="#ff0000"/><path d="M10.5 10.5l4 1.5-4 1.5v-3z" fill="#fff"/>`
     }
 };
