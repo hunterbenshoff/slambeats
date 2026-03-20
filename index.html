@@ -1597,7 +1597,7 @@ const SERVICES = {
     spotify: {
         name: 'Spotify',
         url: (album, artist) =>
-            `https://open.spotify.com/search/${encodeURIComponent(album + ' ' + artist)}/albums`,
+            `https://open.spotify.com/search/${encodeURIComponent(album)}/albums`,
         icon: `<rect width="24" height="24" rx="12" fill="#1db954"/><path d="M17 13.1c-2.6-1.5-6.4-1.9-9-1.1-.4.1-.7-.1-.8-.4-.1-.4.1-.7.4-.8 3-.9 7.1-.5 9.9 1.3.3.2.4.7.2 1-.2.3-.5.4-.7.2zm-.6 2.3c-.2.3-.6.4-.9.2-2.2-1.3-5.4-1.7-8-1-.3.1-.7-.1-.8-.4-.1-.3.1-.7.4-.8 2.9-.8 6.4-.4 8.9 1 .3.2.4.6.2.9zm-.9 2.1c-.2.3-.5.3-.7.2-1.9-1.1-4.2-1.4-7-.8-.3.1-.5-.1-.6-.4-.1-.3.1-.5.4-.6 3-.7 5.6-.3 7.7.9.2.2.3.5.2.7z" fill="#fff"/>`
     },
     youtube: {
