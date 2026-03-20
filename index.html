@@ -432,6 +432,67 @@
       padding: 0;
     }
 
+    /* ── Profile panel ───────────────────────────────────────── */
+    #profile-panel {
+      position: fixed; inset: 0; z-index: 110;
+      background: rgba(0,0,0,0.88);
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    #profile-panel.open { display: flex; }
+    .profile-box {
+      background: #120408; border: 1px solid rgba(180,20,20,0.5);
+      border-radius: 14px; padding: 36px 32px; max-width: 360px; width: 90%;
+      text-align: center; position: relative;
+    }
+    .profile-close {
+      position: absolute; top: 14px; right: 18px;
+      background: none; border: none; color: var(--muted);
+      font-size: 20px; cursor: pointer; line-height: 1;
+    }
+    .profile-close:hover { color: var(--fg); }
+    .profile-handle {
+      font-size: 22px; font-weight: 900; letter-spacing: 3px;
+      color: var(--amber); margin-bottom: 4px;
+    }
+    .profile-since {
+      font-size: 11px; color: var(--muted); margin-bottom: 24px;
+    }
+    .profile-stats {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-bottom: 24px;
+    }
+    .profile-stat {
+      background: rgba(255,255,255,0.04); border-radius: 8px;
+      padding: 12px 8px;
+    }
+    .profile-stat-n  { font-size: 22px; font-weight: 800; color: var(--fg); display: block; }
+    .profile-stat-l  { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+    .profile-badges  { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 24px; min-height: 28px; }
+    .profile-badge-pill {
+      background: rgba(192,24,24,0.18); border: 1px solid rgba(192,24,24,0.4);
+      color: var(--amber); font-size: 10px; font-weight: 700;
+      letter-spacing: 1px; padding: 4px 10px; border-radius: 20px;
+    }
+    .profile-no-badge { font-size: 11px; color: var(--muted); }
+    .profile-logout {
+      width: 100%; background: transparent;
+      border: 1px solid rgba(180,20,20,0.4); color: var(--muted);
+      padding: 11px; border-radius: 8px; font-size: 11px;
+      font-weight: 700; letter-spacing: 2px; cursor: pointer;
+      text-transform: uppercase; transition: all 0.2s;
+    }
+    .profile-logout:hover { border-color: var(--red); color: var(--red); }
+    .profile-not-logged {
+      font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.6;
+    }
+    .profile-login-btn {
+      width: 100%; background: var(--red); color: #fff; border: none;
+      padding: 14px; border-radius: 8px; font-size: 13px;
+      font-weight: 800; letter-spacing: 2px; cursor: pointer;
+    }
+    .profile-login-btn:hover { background: #a01010; }
+
     /* ── Ratings panel ───────────────────────────────────────── */
     .ratings-empty {
       text-align: center; color: var(--muted);
@@ -742,7 +803,10 @@
     <span class="nosifer-text date-text" id="date-display"></span>
     <div class="drip-container" id="date-drip-container"></div>
   </div>
-  <button id="sound-toggle-btn" onclick="toggleSound()" title="Toggle album drop sound" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:rgba(140,80,80,0.5);font-size:16px;transition:color 0.2s;" aria-label="Toggle sound">🔔</button>
+  <div style="display:flex;align-items:center;gap:4px;">
+    <button id="sound-toggle-btn" onclick="toggleSound()" title="Toggle album drop sound" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:rgba(140,80,80,0.5);font-size:16px;transition:color 0.2s;" aria-label="Toggle sound">🔔</button>
+    <button id="profile-btn" onclick="openProfile()" title="Your profile" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:rgba(140,80,80,0.5);font-size:18px;transition:color 0.2s;line-height:1;" aria-label="Profile">👤</button>
+  </div>
 </header>
 
 <!-- ── Tab Nav ── -->
@@ -1017,6 +1081,30 @@
       <p id="login-error" class="modal-error"></p>
       <button onclick="confirmLogin()">RESTORE IDENTITY</button>
       <p class="modal-switch">New here? <button onclick="showRegister()" class="modal-link-btn">Create handle</button></p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Profile Panel ── -->
+<div id="profile-panel">
+  <div class="profile-box">
+    <button class="profile-close" onclick="closeProfile()">✕</button>
+    <!-- Logged-in view -->
+    <div id="profile-logged-in" style="display:none">
+      <div class="profile-handle" id="profile-handle-text"></div>
+      <div class="profile-since" id="profile-since-text"></div>
+      <div class="profile-stats" id="profile-stats-grid">
+        <div class="profile-stat"><span class="profile-stat-n" id="profile-ratings-n">—</span><span class="profile-stat-l">Ratings</span></div>
+        <div class="profile-stat"><span class="profile-stat-n" id="profile-comments-n">—</span><span class="profile-stat-l">Comments</span></div>
+      </div>
+      <div class="profile-badges" id="profile-badges-list"></div>
+      <button class="profile-logout" onclick="logoutUser()">LOG OUT</button>
+    </div>
+    <!-- Logged-out view -->
+    <div id="profile-logged-out">
+      <div class="profile-handle" style="margin-bottom:16px">WHO ARE YOU?</div>
+      <div class="profile-not-logged">No handle yet. Register or log in to track your ratings, earn badges, and leave your mark.</div>
+      <button class="profile-login-btn" onclick="closeProfile(); document.getElementById('username-modal').style.display='flex';">ENTER THE PIT</button>
     </div>
   </div>
 </div>
@@ -1670,6 +1758,87 @@ function requireUsername(callback) {
     window._usernameCallback = callback;
 }
 
+function logoutUser() {
+    localStorage.removeItem('slambeats_uid');
+    localStorage.removeItem('slambeats_username');
+    localStorage.removeItem('slambeats_service');
+    closeProfile();
+    // Update profile button tint
+    const btn = document.getElementById('profile-btn');
+    if (btn) btn.style.color = 'rgba(140,80,80,0.5)';
+}
+
+// ── PROFILE PANEL ─────────────────────────────────────────────
+async function openProfile() {
+    const panel = document.getElementById('profile-panel');
+    panel.classList.add('open');
+
+    const username = getUsername();
+    const uid      = getUserId();
+
+    if (!username || !uid) {
+        document.getElementById('profile-logged-in').style.display  = 'none';
+        document.getElementById('profile-logged-out').style.display = 'block';
+        return;
+    }
+
+    document.getElementById('profile-logged-out').style.display = 'none';
+    document.getElementById('profile-logged-in').style.display  = 'block';
+    document.getElementById('profile-handle-text').textContent  = username.toUpperCase();
+    document.getElementById('profile-since-text').textContent   = 'Member of The Pit';
+
+    // Fetch stats from Supabase
+    try {
+        const [ratingsRes, commentsRes] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/ratings?user_id=eq.${encodeURIComponent(uid)}&select=rating,date`, { headers: SB_HEADERS }),
+            fetch(`${SUPABASE_URL}/rest/v1/comments?user_id=eq.${encodeURIComponent(uid)}&select=id`, { headers: SB_HEADERS }),
+        ]);
+        const ratings  = await ratingsRes.json();
+        const comments = await commentsRes.json();
+
+        const totalRatings  = Array.isArray(ratings)  ? ratings.length  : 0;
+        const totalComments = Array.isArray(comments) ? comments.length : 0;
+
+        document.getElementById('profile-ratings-n').textContent  = totalRatings;
+        document.getElementById('profile-comments-n').textContent = totalComments;
+
+        // Calculate streak for badge check
+        const dates = (Array.isArray(ratings) ? ratings : [])
+            .map(r => r.date).sort();
+        let maxStreak = 0, cur = 0;
+        for (let i = 0; i < dates.length; i++) {
+            if (i === 0) { cur = 1; }
+            else {
+                const prev = new Date(dates[i-1]), curr = new Date(dates[i]);
+                const diff = (curr - prev) / 86400000;
+                cur = diff === 1 ? cur + 1 : 1;
+            }
+            if (cur > maxStreak) maxStreak = cur;
+        }
+
+        const stats  = { totalRatings, totalComments, maxStreak };
+        const badges = getUserBadges(stats);
+        const badgeEl = document.getElementById('profile-badges-list');
+        if (badges.length > 0) {
+            badgeEl.innerHTML = badges.map(b => `<span class="profile-badge-pill">${b}</span>`).join('');
+        } else {
+            badgeEl.innerHTML = '<span class="profile-no-badge">Rate an album to earn your first badge</span>';
+        }
+    } catch(e) {
+        document.getElementById('profile-ratings-n').textContent  = '?';
+        document.getElementById('profile-comments-n').textContent = '?';
+    }
+}
+
+function closeProfile() {
+    document.getElementById('profile-panel').classList.remove('open');
+}
+
+// Close profile on backdrop click
+document.getElementById('profile-panel').addEventListener('click', function(e) {
+    if (e.target === this) closeProfile();
+});
+
 // ── PASSWORD HASHING ──────────────────────────────────────────
 async function hashPin(pin) {
     const encoder = new TextEncoder();
@@ -1765,7 +1934,18 @@ async function confirmLogin() {
 function closeModalAndProceed() {
     document.getElementById('username-modal').style.display = 'none';
     if (window._usernameCallback) { window._usernameCallback(); window._usernameCallback = null; }
+    // Light up the profile button when logged in
+    const btn = document.getElementById('profile-btn');
+    if (btn) btn.style.color = 'rgba(200,20,20,0.75)';
 }
+
+// On page load, light up profile button if already logged in
+document.addEventListener('DOMContentLoaded', () => {
+    if (getUsername()) {
+        const btn = document.getElementById('profile-btn');
+        if (btn) btn.style.color = 'rgba(200,20,20,0.75)';
+    }
+});
 
 // ══════════════════════════════════════════════════════════════
 // BADGE SYSTEM
@@ -2255,12 +2435,14 @@ function toggleSound() {
     soundEnabled = !soundEnabled;
     localStorage.setItem('slambeats_sound', soundEnabled);
     updateSoundBtn();
-    if (soundEnabled && !bellPlayed) playChurchBell();
+    // Always play on enable — button click IS the user gesture browsers require
+    if (soundEnabled) playChurchBell();
 }
 
 function playChurchBell() {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        ctx.resume(); // force out of suspended state (browser autoplay policy)
         bellPlayed = true;
 
         const masterGain = ctx.createGain();
