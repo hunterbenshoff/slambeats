@@ -1087,6 +1087,10 @@
       <input type="text" id="login-username-input" maxlength="20" placeholder="your handle" autocomplete="off">
       <input type="password" id="login-pin-input" maxlength="6" placeholder="your PIN" autocomplete="off" inputmode="numeric">
       <p id="login-error" class="modal-error"></p>
+      <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-bottom:12px;cursor:pointer;">
+        <input type="checkbox" id="remember-me-check" style="accent-color:var(--red);">
+        Keep me logged in on this device
+      </label>
       <button onclick="confirmLogin()">RESTORE IDENTITY</button>
       <p class="modal-switch">New here? <button onclick="showRegister()" class="modal-link-btn">Create handle</button></p>
     </div>
@@ -1115,7 +1119,7 @@
     <div id="profile-logged-out">
       <div class="profile-handle" style="margin-bottom:16px">WHO ARE YOU?</div>
       <div class="profile-not-logged">No handle yet. Register or log in to track your ratings, earn badges, and leave your mark.</div>
-      <button class="profile-login-btn" onclick="document.getElementById('username-modal').style.display='flex';">ENTER THE PIT</button>
+      <button class="profile-login-btn" onclick="openUsernameModal()">ENTER THE PIT</button>
     </div>
   </div>
 </div>
@@ -1782,8 +1786,27 @@ function getUsername() {
 
 function requireUsername(callback) {
     if (getUsername()) { callback(); return; }
-    document.getElementById('username-modal').style.display = 'flex';
+    openUsernameModal();
     window._usernameCallback = callback;
+}
+
+function openUsernameModal() {
+    document.getElementById('username-modal').style.display = 'flex';
+    // If they've registered before, go straight to login and pre-fill handle
+    if (localStorage.getItem('slambeats_has_account')) {
+        showLogin();
+        const saved = localStorage.getItem('slambeats_last_username');
+        if (saved) {
+            document.getElementById('login-username-input').value = saved;
+            // If remember me was checked, pre-fill PIN too
+            const savedPin = localStorage.getItem('slambeats_remember_pin');
+            if (savedPin) {
+                document.getElementById('login-pin-input').value = savedPin;
+            }
+        }
+    } else {
+        showRegister();
+    }
 }
 
 function logoutUser() {
@@ -1927,6 +1950,8 @@ async function confirmUsername() {
     }
 
     localStorage.setItem('slambeats_username', username);
+    localStorage.setItem('slambeats_has_account', '1');
+    localStorage.setItem('slambeats_last_username', username);
     closeModalAndProceed();
 }
 
@@ -1959,6 +1984,15 @@ async function confirmLogin() {
         // Restore streaming service preference
         if (user.preferred_service) {
             localStorage.setItem('slambeats_service', user.preferred_service);
+        }
+        // Remember me
+        localStorage.setItem('slambeats_has_account', '1');
+        localStorage.setItem('slambeats_last_username', user.username);
+        const rememberMe = document.getElementById('remember-me-check')?.checked;
+        if (rememberMe) {
+            localStorage.setItem('slambeats_remember_pin', pin);
+        } else {
+            localStorage.removeItem('slambeats_remember_pin');
         }
     } catch(e) {
         errEl.textContent = 'Something went wrong. Try again.';
