@@ -1587,19 +1587,19 @@ const SERVICES = {
     apple: {
         name: 'Apple Music',
         url: (album, artist) =>
-            `https://music.apple.com/search?term=${encodeURIComponent(album)}`,
+            `https://music.apple.com/search?term=${encodeURIComponent(album + ' ' + artist)}`,
         icon: `<rect width="24" height="24" rx="5" fill="#fc3c44"/><path d="M16 7H9v7.75c-.32-.13-.67-.25-1-.25-1.66 0-3 1.12-3 2.5s1.34 2.5 3 2.5 3-1.12 3-2.5V9.5h4V7z" fill="#fff"/>`
     },
     spotify: {
         name: 'Spotify',
         url: (album, artist) =>
-            `https://open.spotify.com/search/${encodeURIComponent(album)}/albums`,
+            `https://open.spotify.com/search/${encodeURIComponent(album + ' ' + artist)}/albums`,
         icon: `<rect width="24" height="24" rx="12" fill="#1db954"/><path d="M17 13.1c-2.6-1.5-6.4-1.9-9-1.1-.4.1-.7-.1-.8-.4-.1-.4.1-.7.4-.8 3-.9 7.1-.5 9.9 1.3.3.2.4.7.2 1-.2.3-.5.4-.7.2zm-.6 2.3c-.2.3-.6.4-.9.2-2.2-1.3-5.4-1.7-8-1-.3.1-.7-.1-.8-.4-.1-.3.1-.7.4-.8 2.9-.8 6.4-.4 8.9 1 .3.2.4.6.2.9zm-.9 2.1c-.2.3-.5.3-.7.2-1.9-1.1-4.2-1.4-7-.8-.3.1-.5-.1-.6-.4-.1-.3.1-.5.4-.6 3-.7 5.6-.3 7.7.9.2.2.3.5.2.7z" fill="#fff"/>`
     },
     youtube: {
         name: 'YouTube Music',
         url: (album, artist) =>
-            `https://music.youtube.com/search?q=${encodeURIComponent(album)}`,
+            `https://music.youtube.com/search?q=${encodeURIComponent(album + ' ' + artist)}`,
         icon: `<rect width="24" height="24" rx="12" fill="#ff0000"/><circle cx="12" cy="12" r="5" fill="#fff"/><circle cx="12" cy="12" r="3" fill="#ff0000"/><path d="M10.5 10.5l4 1.5-4 1.5v-3z" fill="#fff"/>`
     }
 };
@@ -1613,10 +1613,22 @@ async function fetchArtwork(album, artist) {
         const res = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=10`);
         const data = await res.json();
         if (data.results && data.results.length > 0) {
-            const albumLower = album.toLowerCase();
-            const match = data.results.find(r =>
-                r.collectionName && r.collectionName.toLowerCase().includes(albumLower.split(' ')[0])
-            ) || data.results[0];
+            const albumLower  = album.toLowerCase();
+            const artistLower = artist.toLowerCase();
+            // Best match: exact album name + artist name
+            const match =
+                data.results.find(r =>
+                    r.collectionName?.toLowerCase() === albumLower &&
+                    r.artistName?.toLowerCase().includes(artistLower.split(' ')[0])
+                ) ||
+                data.results.find(r =>
+                    r.collectionName?.toLowerCase().includes(albumLower) &&
+                    r.artistName?.toLowerCase().includes(artistLower.split(' ')[0])
+                ) ||
+                data.results.find(r =>
+                    r.collectionName?.toLowerCase().includes(albumLower)
+                ) ||
+                data.results[0];
             if (match.artworkUrl100) {
                 return match.artworkUrl100.replace('100x100bb', '600x600bb');
             }
