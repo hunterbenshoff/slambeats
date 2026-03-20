@@ -1977,6 +1977,8 @@ function closeModalAndProceed() {
     // Light up the profile button when logged in
     const btn = document.getElementById('profile-btn');
     if (btn) btn.style.color = 'rgba(200,20,20,0.75)';
+    // Play door sound on login
+    if (soundEnabled) playChurchBell();
 }
 
 // On page load, light up profile button if already logged in
@@ -2545,8 +2547,17 @@ function toggleSound() {
 
 function playChurchBell() {
     try {
+        bellPlayed = true;
+        const audio = new Audio('bell.m4a');
+        audio.volume = 1.0;
+        audio.play().catch(e => console.warn('Audio play failed:', e));
+        return;
+    } catch(e) { console.warn('Audio failed:', e); }
+}
+function playChurchBell_synth() {
+    try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        ctx.resume(); // force out of suspended state (browser autoplay policy)
+        ctx.resume();
         bellPlayed = true;
 
         const masterGain = ctx.createGain();
@@ -2638,7 +2649,6 @@ function checkAndPlayBell() {
 // Init sound button state on page load
 document.addEventListener('DOMContentLoaded', () => {
     updateSoundBtn();
-    checkAndPlayBell();
 });
 
 </script>
