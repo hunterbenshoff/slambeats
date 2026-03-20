@@ -2239,7 +2239,7 @@ init();
 })();
 
 // ══════════════════════════════════════════════════════════════
-// CHURCH BELL SOUND — new album day notification
+// DEICIDE BELL — cascading rapid strikes, Deicide s/t intro
 // ══════════════════════════════════════════════════════════════
 let soundEnabled = localStorage.getItem('slambeats_sound') === 'true';
 let bellPlayed   = false;
@@ -2263,59 +2263,77 @@ function playChurchBell() {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         bellPlayed = true;
 
-        // Church bell — sum of inharmonic partials with exponential decay
-        const bellPartials = [
-            { freq: 220,  gain: 0.6,  decay: 4.0 },
-            { freq: 440,  gain: 0.4,  decay: 3.0 },
-            { freq: 587,  gain: 0.25, decay: 2.5 },
-            { freq: 880,  gain: 0.15, decay: 2.0 },
-            { freq: 1320, gain: 0.08, decay: 1.5 },
-        ];
-
         const masterGain = ctx.createGain();
-        masterGain.gain.setValueAtTime(0.5, ctx.currentTime);
+        masterGain.gain.setValueAtTime(0.55, ctx.currentTime);
         masterGain.connect(ctx.destination);
 
-        bellPartials.forEach(({ freq, gain, decay }) => {
-            const osc = ctx.createOscillator();
-            const g   = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, ctx.currentTime);
-            g.gain.setValueAtTime(gain, ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + decay);
-            osc.connect(g);
-            g.connect(masterGain);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + decay);
-        });
+        // Strike a single bell tone — sharp attack, fast decay, inharmonic partials
+        function strikeBell(t, fundamental, strikeGain) {
+            // Inharmonic partials of a heavy cast bell
+            const partials = [
+                { ratio: 1.0,   g: 0.7,  decay: 1.6 },
+                { ratio: 2.76,  g: 0.5,  decay: 1.1 },
+                { ratio: 5.4,   g: 0.3,  decay: 0.7 },
+                { ratio: 8.93,  g: 0.15, decay: 0.4 },
+                { ratio: 13.34, g: 0.07, decay: 0.25 },
+            ];
+            partials.forEach(({ ratio, g, decay }) => {
+                const osc = ctx.createOscillator();
+                const env = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(fundamental * ratio, t);
+                // Sharp metallic attack — brief spike then exponential decay
+                env.gain.setValueAtTime(0.0001, t);
+                env.gain.linearRampToValueAtTime(g * strikeGain, t + 0.004);
+                env.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+                osc.connect(env);
+                env.connect(masterGain);
+                osc.start(t);
+                osc.stop(t + decay + 0.05);
+            });
 
-        // Electric low hum — the "juice" undercurrent
-        const hum = ctx.createOscillator();
-        const humGain = ctx.createGain();
-        hum.type = 'sawtooth';
-        hum.frequency.setValueAtTime(55, ctx.currentTime);
-        humGain.gain.setValueAtTime(0.12, ctx.currentTime);
-        humGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 2.5);
-        hum.connect(humGain);
-        humGain.connect(masterGain);
-        hum.start(ctx.currentTime);
-        hum.stop(ctx.currentTime + 2.5);
-
-        // Electric crackle — brief burst of noise at start
-        const bufferSize = ctx.sampleRate * 0.15;
-        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            output[i] = Math.random() * 2 - 1;
+            // Metal clang transient — bright noise burst on each strike
+            const clangSize = Math.floor(ctx.sampleRate * 0.05);
+            const clangBuf  = ctx.createBuffer(1, clangSize, ctx.sampleRate);
+            const cd = clangBuf.getChannelData(0);
+            for (let i = 0; i < clangSize; i++) cd[i] = (Math.random() * 2 - 1);
+            const clang = ctx.createBufferSource();
+            clang.buffer = clangBuf;
+            const clangGain = ctx.createGain();
+            clangGain.gain.setValueAtTime(0.18 * strikeGain, t);
+            clangGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+            clang.connect(clangGain);
+            clangGain.connect(masterGain);
+            clang.start(t);
         }
-        const noise = ctx.createBufferSource();
-        noise.buffer = noiseBuffer;
-        const noiseGain = ctx.createGain();
-        noiseGain.gain.setValueAtTime(0.08, ctx.currentTime);
-        noiseGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
-        noise.connect(noiseGain);
-        noiseGain.connect(masterGain);
-        noise.start(ctx.currentTime);
+
+        // Cascading rapid strikes — mirrors the Deicide intro rhythm:
+        // tight cluster of hits, overlapping, building chaos before the riff drops
+        const now = ctx.currentTime;
+        const strikes = [
+            { t: 0.00,  fund: 110, gain: 1.0  },
+            { t: 0.28,  fund: 110, gain: 0.95 },
+            { t: 0.50,  fund: 98,  gain: 1.0  },
+            { t: 0.65,  fund: 110, gain: 0.9  },
+            { t: 0.80,  fund: 82,  gain: 1.0  },
+            { t: 0.90,  fund: 110, gain: 0.85 },
+            { t: 1.00,  fund: 98,  gain: 0.9  },
+            { t: 1.08,  fund: 82,  gain: 1.0  },
+        ];
+        strikes.forEach(({ t, fund, gain }) => strikeBell(now + t, fund, gain));
+
+        // Sub-rumble underneath — that low-end cathedral resonance
+        const sub = ctx.createOscillator();
+        const subGain = ctx.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(41, now);
+        subGain.gain.setValueAtTime(0.0001, now);
+        subGain.gain.linearRampToValueAtTime(0.25, now + 0.1);
+        subGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+        sub.connect(subGain);
+        subGain.connect(masterGain);
+        sub.start(now);
+        sub.stop(now + 3.0);
 
     } catch(e) { console.warn('Audio context failed:', e); }
 }
