@@ -814,10 +814,7 @@
     <span class="nosifer-text date-text" id="date-display"></span>
     <div class="drip-container" id="date-drip-container"></div>
   </div>
-  <div style="display:flex;align-items:center;gap:4px;">
-    <button id="sound-toggle-btn" onclick="toggleSound()" title="Toggle album drop sound" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:rgba(140,80,80,0.5);font-size:16px;transition:color 0.2s;" aria-label="Toggle sound">🔔</button>
-    <button id="profile-btn" onclick="openProfile()" title="Your profile" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:rgba(140,80,80,0.5);font-size:18px;transition:color 0.2s;line-height:1;" aria-label="Profile">👤</button>
-  </div>
+  <button id="profile-btn" onclick="openProfile()" title="Your profile" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:rgba(140,80,80,0.5);font-size:18px;transition:color 0.2s;line-height:1;" aria-label="Profile">👤</button>
 </header>
 
 <!-- ── Tab Nav ── -->
@@ -1978,7 +1975,7 @@ function closeModalAndProceed() {
     const btn = document.getElementById('profile-btn');
     if (btn) btn.style.color = 'rgba(200,20,20,0.75)';
     // Play door sound on login
-    if (soundEnabled) playChurchBell();
+    playChurchBell();
 }
 
 // On page load, light up profile button if already logged in
