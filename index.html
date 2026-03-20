@@ -374,6 +374,17 @@
     }
     .comment-text { font-size: 13px; color: #f0e6d3; line-height: 1.5; }
     .comment-time { font-size: 10px; color: var(--muted); margin-top: 4px; }
+    .comment-delete-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(180,20,20,0.35); font-size: 13px; padding: 0 0 0 8px;
+      line-height: 1; transition: color 0.15s; margin-left: auto;
+    }
+    .comment-delete-btn:hover { color: var(--red); }
+    /* ── Admin deletion log ───────────────────────────────────── */
+    .del-log-wrap { margin-top: 20px; text-align: left; max-height: 180px; overflow-y: auto; }
+    .del-log-title { font-size: 10px; font-weight: 800; letter-spacing: 2px; color: var(--red); margin-bottom: 8px; text-align: center; }
+    .del-log-entry { font-size: 10px; color: var(--muted); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 6px 0; line-height: 1.5; }
+    .del-log-who { color: var(--amber); font-weight: 700; }
 
     /* ── Coming soon panels ──────────────────────────────────── */
     .coming-soon-wrap { text-align: center; padding: 80px 20px; }
@@ -924,11 +935,12 @@
   <div class="comments-wrap" id="comments-wrap">
     <p class="section-label">THE PIT TALK</p>
     <div id="comment-input-area">
-      <textarea id="comment-input" placeholder="Say something about today's album... (no drama, music only)" maxlength="280" rows="3"></textarea>
+      <textarea id="comment-input" placeholder="Say something about today's album..." maxlength="280" rows="3"></textarea>
       <div class="comment-input-footer">
         <span id="comment-char-count">280</span>
         <button id="comment-submit-btn" onclick="submitComment()">Post</button>
       </div>
+      <p id="comment-filter-error" style="font-size:11px;color:var(--red);min-height:14px;margin:4px 0 0;"></p>
     </div>
     <div id="comments-list"></div>
   </div>
@@ -1097,6 +1109,10 @@
         <div class="profile-stat"><span class="profile-stat-n" id="profile-comments-n">—</span><span class="profile-stat-l">Comments</span></div>
       </div>
       <div class="profile-badges" id="profile-badges-list"></div>
+      <div id="profile-del-log" style="display:none">
+        <div class="del-log-title">DELETION LOG</div>
+        <div class="del-log-wrap" id="del-log-entries"></div>
+      </div>
       <button class="profile-logout" onclick="logoutUser()">LOG OUT</button>
     </div>
     <!-- Logged-out view -->
@@ -1122,6 +1138,11 @@
 // CREATE POLICY "Public read comments" ON comments FOR SELECT USING (true);
 // CREATE POLICY "Insert comments" ON comments FOR INSERT WITH CHECK (true);
 // ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_service TEXT;
+// CREATE TABLE IF NOT EXISTS deleted_comments (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, original_comment TEXT NOT NULL, offending_user_id TEXT NOT NULL, offending_username TEXT, deleted_at TIMESTAMPTZ DEFAULT NOW());
+// ALTER TABLE deleted_comments ENABLE ROW LEVEL SECURITY;
+// CREATE POLICY "Public read deleted" ON deleted_comments FOR SELECT USING (true);
+// CREATE POLICY "Insert deleted" ON deleted_comments FOR INSERT WITH CHECK (true);
+// CREATE POLICY "Delete comments" ON comments FOR DELETE USING (true);
 
 // ══════════════════════════════════════════════════════════════
 // ALBUM LIST  (must match daily_album.js exactly)
@@ -1823,6 +1844,26 @@ async function openProfile() {
         } else {
             badgeEl.innerHTML = '<span class="profile-no-badge">Rate an album to earn your first badge</span>';
         }
+
+        // Admin: load deletion log
+        if (username?.toLowerCase() === 'slambeatsdot') {
+            const delLogWrap = document.getElementById('profile-del-log');
+            if (delLogWrap) delLogWrap.style.display = 'block';
+            const delRes = await fetch(
+                `${SUPABASE_URL}/rest/v1/deleted_comments?select=offending_username,original_comment,deleted_at&order=deleted_at.desc&limit=30`,
+                { headers: SB_HEADERS }
+            );
+            const delData = await delRes.json();
+            const delEl = document.getElementById('del-log-entries');
+            if (Array.isArray(delData) && delData.length > 0) {
+                delEl.innerHTML = delData.map(d => {
+                    const when = new Date(d.deleted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    return `<div class="del-log-entry"><span class="del-log-who">${d.offending_username}</span> · ${when}<br>"${d.original_comment.slice(0,80)}${d.original_comment.length > 80 ? '…' : ''}"</div>`;
+                }).join('');
+            } else {
+                delEl.innerHTML = '<div class="del-log-entry" style="text-align:center">Clean slate.</div>';
+            }
+        }
     } catch(e) {
         document.getElementById('profile-ratings-n').textContent  = '?';
         document.getElementById('profile-comments-n').textContent = '?';
@@ -1993,7 +2034,7 @@ async function renderMetrics(cache) {
 async function loadComments(date) {
     try {
         const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/comments?select=user_id,comment,created_at&album_date=eq.${date}&order=created_at.asc`,
+            `${SUPABASE_URL}/rest/v1/comments?select=id,user_id,comment,created_at&album_date=eq.${date}&order=created_at.asc`,
             { headers: SB_HEADERS }
         );
         const data = await res.json();
@@ -2017,13 +2058,18 @@ function renderComments(comments, usernameMap, date) {
         el.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">No comments yet. Be first.</p>';
         return;
     }
+    const isAdmin = getUsername()?.toLowerCase() === 'slambeatsdot';
     el.innerHTML = comments.map(c => {
         const uname = usernameMap[c.user_id] || 'unknown';
         const time  = new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         const isMe  = c.user_id === getUserId();
-        return `<div class="comment-entry${isMe ? ' comment-mine' : ''}">
+        const delBtn = isAdmin
+            ? `<button class="comment-delete-btn" onclick="deleteComment('${c.id}','${c.user_id}','${uname}',${JSON.stringify(escapeHtml(c.comment))})" title="Delete comment">🗑</button>`
+            : '';
+        return `<div class="comment-entry${isMe ? ' comment-mine' : ''}" id="comment-${c.id}">
           <div class="comment-header">
             <span class="comment-username">${uname}${isMe ? ' (you)' : ''}</span>
+            ${delBtn}
           </div>
           <div class="comment-text">${escapeHtml(c.comment)}</div>
           <div class="comment-time">${time}</div>
@@ -2035,11 +2081,70 @@ function escapeHtml(str) {
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ══════════════════════════════════════════════════════════════
+// WORD FILTER — racial/ethnic slurs only, no satire gray area
+// ══════════════════════════════════════════════════════════════
+const BANNED_WORDS = [
+    /\bn[i!1]+[g9]+[e3]*[rz]\b/i,       // n-word variants
+    /\bn[i!1]+gg[ae]h?\b/i,
+    /\bk[i!1]+k[e3]+s?\b/i,             // k-slur
+    /\bsp[i!1]+c[k]?\b/i,               // sp-c
+    /\bch[i!1]+nk\b/i,                  // ch-nk
+    /\bw[e3]+tb[a@]+ck\b/i,             // wetback
+    /\bg[o0]+[o0]+k\b/i,                // g--k
+    /\bs[a@]+nd\s?n[i!1]+gg[ae]r?\b/i,  // sand + n-word
+    /\bz[i!1]+p\b/i,                    // z-p (asian slur)
+    /\bc[o0]+[o0]+n\b/i,                // c--n (anti-black)
+    /\bj[i!1]+gg?[a@b]+[o0]+\b/i,       // j-slur
+    /\bbeaner\b/i,                       // beaner
+    /\bslant[-\s]?eye\b/i,
+    /\bporch\s?monk(ey)?\b/i,
+    /\btowel[-\s]?head\b/i,
+    /\bh[a@]jji\b/i,
+    /\bzip[- ]?head\b/i,
+];
+
+function containsBannedWord(text) {
+    return BANNED_WORDS.some(re => re.test(text));
+}
+
+// ══════════════════════════════════════════════════════════════
+// ADMIN DELETE
+// ══════════════════════════════════════════════════════════════
+async function deleteComment(id, offendingUserId, offendingUsername, commentText) {
+    if (!confirm(`Delete this comment by ${offendingUsername}?`)) return;
+    try {
+        // Log the deletion first
+        await fetch(`${SUPABASE_URL}/rest/v1/deleted_comments`, {
+            method: 'POST',
+            headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+                original_comment: commentText,
+                offending_user_id: offendingUserId,
+                offending_username: offendingUsername
+            })
+        });
+        // Then delete from comments
+        await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${id}`, {
+            method: 'DELETE',
+            headers: SB_HEADERS
+        });
+        // Remove from DOM immediately
+        const el = document.getElementById(`comment-${id}`);
+        if (el) el.remove();
+    } catch(e) { console.error('Delete failed:', e); }
+}
+
 async function submitComment() {
     requireUsername(async () => {
         const input = document.getElementById('comment-input');
         const text  = input.value.trim();
         if (!text || text.length < 2) return;
+        if (containsBannedWord(text)) {
+            const errEl = document.getElementById('comment-filter-error');
+            if (errEl) { errEl.textContent = 'Not on this site.'; setTimeout(() => errEl.textContent = '', 3000); }
+            return;
+        }
         const today = getTodayStr();
         try {
             await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
