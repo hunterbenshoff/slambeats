@@ -1846,7 +1846,7 @@ async function openProfile() {
         }
 
         // Admin: load deletion log
-        if (username?.toLowerCase() === 'slambeatsdot') {
+        if (username?.toLowerCase() === 'dotkill') {
             const delLogWrap = document.getElementById('profile-del-log');
             if (delLogWrap) delLogWrap.style.display = 'block';
             const delRes = await fetch(
@@ -2058,7 +2058,7 @@ function renderComments(comments, usernameMap, date) {
         el.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">No comments yet. Be first.</p>';
         return;
     }
-    const isAdmin = getUsername()?.toLowerCase() === 'slambeatsdot';
+    const isAdmin = getUsername()?.toLowerCase() === 'dotkill';
     el.innerHTML = comments.map(c => {
         const uname = usernameMap[c.user_id] || 'unknown';
         const time  = new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
