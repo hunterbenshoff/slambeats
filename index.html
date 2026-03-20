@@ -1612,6 +1612,11 @@ const SERVICES = {
 // ARTWORK — iTunes first, MusicBrainz/CAA fallback
 // ══════════════════════════════════════════════════════════════
 async function fetchArtwork(album, artist) {
+    // Check cache first — instant on repeat visits
+    const cacheKey = `slambeats_art_${album}_${artist}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return cached;
+
     const albumLower  = album.toLowerCase();
     const artistLower = artist.toLowerCase();
 
@@ -1631,7 +1636,9 @@ async function fetchArtwork(album, artist) {
                     r.artistName?.toLowerCase().includes(artistLower.split(' ')[0])
                 );
             if (match?.artworkUrl100) {
-                return match.artworkUrl100.replace('100x100bb', '600x600bb');
+                const url = match.artworkUrl100.replace('100x100bb', '600x600bb');
+                localStorage.setItem(cacheKey, url);
+                return url;
             }
         }
     } catch (e) {}
@@ -1646,7 +1653,10 @@ async function fetchArtwork(album, artist) {
         if (mbData['release-groups'] && mbData['release-groups'].length > 0) {
             const mbid = mbData['release-groups'][0].id;
             const caaRes = await fetch(`https://coverartarchive.org/release-group/${mbid}/front-500`);
-            if (caaRes.ok) return caaRes.url;
+            if (caaRes.ok) {
+                localStorage.setItem(cacheKey, caaRes.url);
+                return caaRes.url;
+            }
         }
     } catch (e) {}
 
