@@ -548,6 +548,59 @@
       text-align: center; font-size: 11px;
       color: rgba(80,80,100,0.35); padding-top: 12px;
     }
+    .newsletter-bar {
+      margin: 32px 0 8px;
+      padding: 20px 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      text-align: center;
+    }
+    .newsletter-label {
+      font-family: 'Nosifer', cursive;
+      font-size: 13px;
+      color: #c00;
+      margin: 0 0 4px;
+      letter-spacing: 2px;
+    }
+    .newsletter-sub {
+      font-size: 11px;
+      color: rgba(180,180,200,0.5);
+      margin: 0 0 12px;
+    }
+    .newsletter-form {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .newsletter-input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #e0e0e8;
+      padding: 8px 12px;
+      font-size: 13px;
+      border-radius: 2px;
+      width: 220px;
+      outline: none;
+    }
+    .newsletter-input::placeholder { color: rgba(180,180,200,0.3); }
+    .newsletter-btn {
+      background: #c00;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      border-radius: 2px;
+    }
+    .newsletter-btn:hover { background: #e00; }
+    .newsletter-msg {
+      font-size: 11px;
+      margin: 8px 0 0;
+      min-height: 16px;
+      color: rgba(180,180,200,0.6);
+    }
 
     /* ── The Chosen — editorial feature ─────────────────────────── */
     .feature-hero {
@@ -946,6 +999,16 @@
   <div class="killing-archive-wrap">
     <p class="section-label">THE ARCHIVE</p>
     <div id="killing-archive-list"></div>
+  </div>
+
+  <div class="newsletter-bar">
+    <p class="newsletter-label">JOIN THE LIST</p>
+    <p class="newsletter-sub">Daily album drops to your inbox. No bullshit.</p>
+    <form class="newsletter-form" onsubmit="submitNewsletter(event)">
+      <input type="email" id="newsletter-email" class="newsletter-input" placeholder="your@email.com" required />
+      <button type="submit" class="newsletter-btn">SUBSCRIBE</button>
+    </form>
+    <p class="newsletter-msg" id="newsletter-msg"></p>
   </div>
 
   <p class="footer">Metal Today. Metal Tomorrow. Metal Forever.</p>
@@ -1824,6 +1887,27 @@ function openUsernameModal() {
     } else {
         showRegister();
     }
+}
+
+async function submitNewsletter(e) {
+    e.preventDefault();
+    const email = document.getElementById('newsletter-email').value.trim();
+    const msg = document.getElementById('newsletter-msg');
+    const btn = e.target.querySelector('.newsletter-btn');
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+        const url = `https://magic.beehiiv.com/v1/1be33fd6-9f4c-4c49-a460-c7e203641ac1?email=${encodeURIComponent(email)}`;
+        await fetch(url, { method: 'GET', mode: 'no-cors' });
+        msg.textContent = 'You\'re in. Check your inbox.';
+        msg.style.color = '#5f5';
+        document.getElementById('newsletter-email').value = '';
+    } catch(err) {
+        msg.textContent = 'Something went wrong. Try again.';
+        msg.style.color = '#f55';
+    }
+    btn.disabled = false;
+    btn.textContent = 'SUBSCRIBE';
 }
 
 function logoutUser() {
