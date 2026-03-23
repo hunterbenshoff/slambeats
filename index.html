@@ -54,6 +54,18 @@
       border-top: 3px solid #b01010;
       border-bottom: 3px solid #b01010;
     }
+    .site-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, rgba(10,3,5,0.92) 0%, rgba(10,3,5,0.6) 35%, rgba(10,3,5,0.0) 65%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .site-header .header-logo {
+      position: relative;
+      z-index: 2;
+    }
 
 
     /* ── Header logo ─────────────────────────────────────────── */
