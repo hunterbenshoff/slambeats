@@ -49,35 +49,20 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: url('banner.gif') right bottom / cover no-repeat;
+      background: url('banner.gif') center center / cover no-repeat;
       border-top: 3px solid #b01010;
       border-bottom: 3px solid #b01010;
       overflow: hidden;
       padding: 24px 24px 20px;
     }
 
-    /* ── Blood rain ──────────────────────────────────────────── */
-    .blood-drop {
-      position: absolute;
-      top: -30px;
-      border-radius: 0 0 4px 4px;
-      background: linear-gradient(to bottom, rgba(120,5,5,0.6), rgba(180,10,10,0.95));
-      pointer-events: none;
-      animation: bloodFall linear infinite;
-    }
-    @keyframes bloodFall {
-      0%   { transform: translateY(0);    opacity: 0; }
-      10%  { opacity: 1; }
-      85%  { opacity: 1; }
-      100% { transform: translateY(280px); opacity: 0; }
-    }
 
     /* ── Header logo ─────────────────────────────────────────── */
     .header-logo {
       position: relative;
       z-index: 5;
       display: block;
-      max-width: 90vw;
+      width: min(700px, 92vw);
       height: auto;
     }
 
@@ -891,7 +876,6 @@
 
 <!-- ── Header ── -->
 <header class="site-header" id="site-header">
-  <div id="blood-rain-container"></div>
   <img src="slambeatsdotkill-logo.png" alt="slambeats.kill" class="header-logo" id="header-logo">
   <div class="header-date-wrap">
     <span class="nosifer-text date-text" id="date-display"></span>
@@ -2679,42 +2663,6 @@ init();
   initDrips();
 })();
 
-// ── Blood Rain ────────────────────────────────────────────────
-(function() {
-  const container = document.getElementById('blood-rain-container');
-  const header    = document.getElementById('site-header');
-  if (!container || !header) return;
-
-  Object.assign(container.style, {
-    position: 'absolute',
-    top: '0', left: '0',
-    width: '100%', height: '100%',
-    pointerEvents: 'none',
-    zIndex: '1'
-  });
-
-  const DROP_COUNT = 40;
-
-  for (let i = 0; i < DROP_COUNT; i++) {
-    const drop = document.createElement('div');
-    drop.className = 'blood-drop';
-    const w   = 2 + Math.random() * 3;
-    const h   = 18 + Math.random() * 60;
-    const x   = Math.random() * 100;
-    const dur = 1.2 + Math.random() * 2.5;
-    const del = Math.random() * 4;
-
-    Object.assign(drop.style, {
-      left:             x + '%',
-      width:            w + 'px',
-      height:           h + 'px',
-      animationDuration: dur + 's',
-      animationDelay:   del + 's'
-    });
-
-    container.appendChild(drop);
-  }
-})();
 
 // ══════════════════════════════════════════════════════════════
 // DEICIDE BELL — cascading rapid strikes, Deicide s/t intro
