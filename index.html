@@ -62,15 +62,64 @@
       position: relative;
       z-index: 5;
       display: block;
-      width: min(700px, 92vw);
+      width: min(960px, 96vw);
       height: auto;
     }
 
-    /* ── Header date ─────────────────────────────────────────── */
-    .header-date-wrap {
-      position: relative;
-      z-index: 5;
-      margin-top: 8px;
+    /* ── Tab right cluster (date + user) ────────────────────── */
+    .tab-right-cluster {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-right: 4px;
+    }
+    .tab-date {
+      font-size: 11px;
+      opacity: 0.75;
+      white-space: nowrap;
+    }
+    .tab-user-btn {
+      background: none;
+      border: 1px solid #b01010;
+      color: #e0e0e8;
+      font-family: 'Nosifer', cursive;
+      font-size: 11px;
+      padding: 4px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      letter-spacing: 1px;
+    }
+    .tab-user-btn:hover { background: rgba(176,16,16,0.15); }
+
+    /* ── Profile card dropdown ───────────────────────────────── */
+    #profile-card {
+      position: fixed;
+      top: 0; right: 0;
+      width: 260px;
+      background: #0d0d0d;
+      border: 1px solid #b01010;
+      border-top: none;
+      z-index: 999;
+      padding: 20px;
+      box-shadow: -4px 4px 20px rgba(0,0,0,0.8);
+    }
+    .pc-handle {
+      font-family: 'Nosifer', cursive;
+      color: #b01010;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    .pc-since {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 12px;
+    }
+    .pc-stats {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 14px;
+      line-height: 1.8;
     }
 
     /* ── Drip wrap (shared for logo + date) ──────────────────── */
@@ -877,9 +926,6 @@
 <!-- ── Header ── -->
 <header class="site-header" id="site-header">
   <img src="slambeatsdotkill-logo.png" alt="slambeats.kill" class="header-logo" id="header-logo">
-  <div class="header-date-wrap">
-    <span class="nosifer-text date-text" id="date-display"></span>
-  </div>
 </header>
 
 <!-- ── Tab Nav ── -->
@@ -889,8 +935,28 @@
   <button class="tab-btn"        id="tab-fresh-blood" onclick="switchTab('fresh-blood')">Fresh Blood</button>
   <button class="tab-btn"        id="tab-crypt"       onclick="switchTab('crypt')">The Crypt</button>
   <button class="tab-btn"        id="tab-pit"         onclick="switchTab('pit')">The Pit</button>
-  <button class="tab-btn"        id="tab-profile"     onclick="switchTab('profile')" style="margin-left:auto">Profile</button>
+  <div class="tab-right-cluster">
+    <span class="nosifer-text date-text tab-date" id="date-display"></span>
+    <button class="tab-user-btn" id="tab-user-btn" onclick="toggleProfileCard()"></button>
+  </div>
 </nav>
+
+<!-- ── Profile Card Dropdown ── -->
+<div id="profile-card" style="display:none">
+  <div id="profile-card-logged-in" style="display:none">
+    <div class="pc-handle" id="pc-handle"></div>
+    <div class="pc-since" id="pc-since"></div>
+    <div class="pc-stats" id="pc-stats"></div>
+    <div id="pc-del-log" style="display:none">
+      <div class="del-log-title">DELETION LOG</div>
+      <div class="del-log-wrap" id="pc-del-entries"></div>
+    </div>
+    <button class="profile-logout" onclick="logoutUser()">LOG OUT</button>
+  </div>
+  <div id="profile-card-logged-out" style="display:none">
+    <button class="profile-login-btn" onclick="openUsernameModal(); toggleProfileCard()">ENTER THE PIT</button>
+  </div>
+</div>
 
 <!-- ════════════════ KILLING FLOOR PANEL ════════════════ -->
 <div class="tab-panel" id="panel-killing-floor">
@@ -1023,7 +1089,6 @@
     <p class="newsletter-msg" id="newsletter-msg"></p>
   </div>
 
-  <p class="footer">Metal Today. Metal Tomorrow. Metal Forever.</p>
 </div>
 
 <!-- ════════════════ THE PIT PANEL ════════════════ -->
@@ -1926,25 +1991,52 @@ function logoutUser() {
     localStorage.removeItem('slambeats_uid');
     localStorage.removeItem('slambeats_username');
     localStorage.removeItem('slambeats_service');
+    profileCardOpen = false;
+    document.getElementById('profile-card').style.display = 'none';
+    updateUserBtn();
     switchTab('killing-floor');
 }
 
 // ── PROFILE TAB ───────────────────────────────────────────────
+function updateUserBtn() {
+    const btn = document.getElementById('tab-user-btn');
+    if (!btn) return;
+    const username = getUsername();
+    btn.textContent = username ? username.toUpperCase() : 'LOG IN';
+}
+
 async function openProfile() {
 
     const username = getUsername();
     const uid      = getUserId();
 
+    updateUserBtn();
+
     if (!username || !uid) {
-        document.getElementById('profile-logged-in').style.display  = 'none';
-        document.getElementById('profile-logged-out').style.display = 'block';
+        document.getElementById('profile-card-logged-in').style.display  = 'none';
+        document.getElementById('profile-card-logged-out').style.display = 'block';
+        // also update old panel if exists
+        const pli = document.getElementById('profile-logged-in');
+        const plo = document.getElementById('profile-logged-out');
+        if (pli) pli.style.display = 'none';
+        if (plo) plo.style.display = 'block';
         return;
     }
 
-    document.getElementById('profile-logged-out').style.display = 'none';
-    document.getElementById('profile-logged-in').style.display  = 'block';
-    document.getElementById('profile-handle-text').textContent  = username.toUpperCase();
-    document.getElementById('profile-since-text').textContent   = 'Member of The Pit';
+    document.getElementById('profile-card-logged-out').style.display = 'none';
+    document.getElementById('profile-card-logged-in').style.display  = 'block';
+    document.getElementById('pc-handle').textContent = username.toUpperCase();
+    document.getElementById('pc-since').textContent  = 'Member of The Pit';
+
+    // also update old panel if exists
+    const pli = document.getElementById('profile-logged-in');
+    const plo = document.getElementById('profile-logged-out');
+    if (plo) plo.style.display = 'none';
+    if (pli) pli.style.display = 'block';
+    const pht = document.getElementById('profile-handle-text');
+    const pst = document.getElementById('profile-since-text');
+    if (pht) pht.textContent = username.toUpperCase();
+    if (pst) pst.textContent = 'Member of The Pit';
 
     // Fetch stats from Supabase
     try {
@@ -1958,8 +2050,12 @@ async function openProfile() {
         const totalRatings  = Array.isArray(ratings)  ? ratings.length  : 0;
         const totalComments = Array.isArray(comments) ? comments.length : 0;
 
-        document.getElementById('profile-ratings-n').textContent  = totalRatings;
-        document.getElementById('profile-comments-n').textContent = totalComments;
+        const prn = document.getElementById('profile-ratings-n');
+        const pcn = document.getElementById('profile-comments-n');
+        if (prn) prn.textContent = totalRatings;
+        if (pcn) pcn.textContent = totalComments;
+        const pcStats = document.getElementById('pc-stats');
+        if (pcStats) pcStats.innerHTML = `${totalRatings} Ratings &nbsp;·&nbsp; ${totalComments} Comments`;
 
         // Calculate streak for badge check
         const dates = (Array.isArray(ratings) ? ratings : [])
@@ -2401,14 +2497,34 @@ async function buildRatingsPanel() {
 // TAB SWITCHING
 // ══════════════════════════════════════════════════════════════
 function switchTab(name) {
-    ['killing-floor', 'pit', 'fresh-blood', 'crypt', 'chosen', 'profile'].forEach(t => {
+    ['killing-floor', 'pit', 'fresh-blood', 'crypt', 'chosen'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
-        document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
+        const btn = document.getElementById(`tab-${t}`);
+        if (btn) btn.classList.toggle('active', t === name);
     });
     if (name === 'crypt') buildArchivePanel();
     if (name === 'killing-floor') buildArchivePanel();
-    if (name === 'profile') openProfile();
+    // close profile card if open
+    document.getElementById('profile-card').style.display = 'none';
 }
+
+let profileCardOpen = false;
+function toggleProfileCard() {
+    const card = document.getElementById('profile-card');
+    profileCardOpen = !profileCardOpen;
+    card.style.display = profileCardOpen ? 'block' : 'none';
+    if (profileCardOpen) openProfile();
+}
+
+// Close profile card when clicking outside
+document.addEventListener('click', function(e) {
+    if (profileCardOpen &&
+        !document.getElementById('profile-card').contains(e.target) &&
+        !document.getElementById('tab-user-btn').contains(e.target)) {
+        profileCardOpen = false;
+        document.getElementById('profile-card').style.display = 'none';
+    }
+});
 
 // ══════════════════════════════════════════════════════════════
 // SERVICE SELECTION
@@ -2498,6 +2614,7 @@ async function init() {
 }
 
 init();
+updateUserBtn();
 
 // ══════════════════════════════════════════════════════════════
 // BLOOD DRIP ANIMATION — Realistic
