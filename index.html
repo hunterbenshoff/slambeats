@@ -1129,13 +1129,14 @@
         overflow: visible;
         /* inherits .album-card background, border, border-radius, padding */
       }
-      /* Underbar: date left, service icon right — sits below artwork */
+      /* Underbar: date left, service icon right — flush with artwork edges */
       .kf-art-underbar {
         display: flex;
         align-items: center;
         justify-content: space-between;
         flex-shrink: 0;
-        padding-top: 6px;
+        width: 100%;
+        padding: 6px 0 0;
         gap: 8px;
       }
       /* Date: left-aligned, proportional */
