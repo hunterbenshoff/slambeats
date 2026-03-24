@@ -1030,8 +1030,8 @@
     @media (min-width: 769px) {
 
       /* Lock the page to viewport height — no outer scroll */
-      html, body { height: 100%; overflow: hidden; }
-      body { display: flex; flex-direction: column; }
+      html { height: 100%; overflow: hidden; }
+      body { height: 100%; min-height: unset; overflow: hidden; display: flex; flex-direction: column; }
       .site-header { flex-shrink: 0; }
       .tab-nav     { flex-shrink: 0; }
 
@@ -1039,10 +1039,10 @@
       .tab-panel {
         flex: 1;
         min-height: 0;
-        max-width: 1240px;
+        max-width: 100%;
         width: 100%;
         margin: 0 auto;
-        padding: 14px 24px 14px;
+        padding: 14px 32px 14px;
         overflow-y: auto;
       }
 
@@ -1058,8 +1058,8 @@
         flex: 1;
         min-height: 0;
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
+        grid-template-columns: 1fr 1.1fr;
+        gap: 24px;
         overflow: hidden;
       }
 
