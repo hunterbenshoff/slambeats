@@ -1050,8 +1050,8 @@
       .site-header { flex-shrink: 0; align-items: flex-start; justify-content: flex-start; }
       .header-logo { width: min(640px, 85vw); height: auto; margin: 0; }
 
-      /* Tab nav stops at 56vw — right 44vw is open for artwork */
-      .tab-nav { position: sticky; top: 0; max-width: 56vw; }
+      /* Tab nav stops at 60vw — right 40vw is open for artwork */
+      .tab-nav { position: sticky; top: 0; max-width: 60vw; }
 
       /* All panels fill remaining height */
       .tab-panel {
@@ -1062,12 +1062,12 @@
         overflow-y: auto;
       }
 
-      /* KF panel: no scroll, leave right 44vw for fixed artwork */
+      /* KF panel: no scroll, leave right 40vw for fixed artwork */
       #panel-killing-floor {
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        padding-right: 44vw; /* room for fixed artwork */
+        padding-right: 40vw; /* room for fixed artwork */
       }
 
       /* Grid: single column — artwork is fixed, not in flow */
@@ -1083,7 +1083,7 @@
       .kf-left {
         position: fixed !important;
         right: 0; top: 0;
-        width: 44vw;
+        width: 40vw;
         height: 100dvh;
         display: flex !important;
         flex-direction: column;
@@ -1108,21 +1108,27 @@
         box-shadow: none;
         padding: 0;
       }
-      /* Date: big overlay ON the artwork, top-centered */
+      /* Date: big DeardorfDrip bloody overlay ON the artwork, top-centered */
       .artwork-date {
         position: absolute;
         top: 0; left: 0; right: 0;
         z-index: 5;
         pointer-events: none;
         text-align: center;
-        font-family: 'Nosifer', cursive;
-        font-size: 15px;
-        letter-spacing: 3px;
+        font-family: 'DeardorfDrip', cursive;
+        font-size: 26px;
+        letter-spacing: 2px;
         text-transform: uppercase;
-        color: #f0e6d3;
-        text-shadow: 0 0 12px rgba(176,16,16,1), 0 2px 6px rgba(0,0,0,0.95);
-        padding: 18px 16px 28px;
-        background: linear-gradient(to bottom, rgba(5,1,2,0.88) 0%, transparent 100%);
+        color: #e8251a;
+        text-shadow:
+          0 0 8px rgba(220,20,10,1),
+          0 0 20px rgba(200,10,0,0.95),
+          0 0 40px rgba(176,0,0,0.8),
+          0 0 70px rgba(140,0,0,0.5),
+          0 3px 10px rgba(0,0,0,0.98),
+          2px 4px 16px rgba(0,0,0,0.9);
+        padding: 22px 16px 40px;
+        background: linear-gradient(to bottom, rgba(3,0,1,0.92) 0%, rgba(5,1,2,0.55) 60%, transparent 100%);
         margin: 0;
       }
       /* Hide the tab-nav date — the artwork overlay replaces it */
@@ -1247,8 +1253,7 @@
       }
       .open-pit-btn:hover { color: var(--amber); border-color: var(--amber); }
 
-      /* Spotify in artwork column */
-      .kf-left .kf-spotify { flex-shrink: 0; margin-top: 0; }
+      /* Spotify removed from artwork column */
     }
 
   </style>
@@ -1327,8 +1332,8 @@
 
       </div><!-- /kf-art-card -->
 
-      <!-- Spotify sits below the artwork in the same column -->
-      <div class="spotify-embed-wrap kf-spotify">
+      <!-- Spotify removed from artwork column — needs a new home TBD -->
+      <!-- <div class="spotify-embed-wrap kf-spotify">
         <p class="section-label">THE PLAYLIST</p>
         <iframe
           src="https://open.spotify.com/embed/playlist/4mZFXJ8NgaKQ01SxZBdAAX?utm_source=generator&theme=0"
@@ -1336,7 +1341,7 @@
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
           loading="lazy" style="border-radius:12px;">
         </iframe>
-      </div>
+      </div> -->
 
     </div><!-- /kf-left -->
 
