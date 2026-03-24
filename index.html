@@ -403,20 +403,20 @@
     .star-row { display: flex; gap: 4px; margin-bottom: 8px; }
     .star-btn {
       background: none; border: none;
-      font-size: 28px; color: rgba(180,60,60,0.35);
-      cursor: pointer; padding: 0; line-height: 1;
-      transition: color 0.12s, transform 0.12s, text-shadow 0.12s;
-      filter: drop-shadow(0 0 0px transparent);
+      font-size: 32px; cursor: pointer; padding: 2px; line-height: 1;
+      transition: transform 0.12s, filter 0.12s;
+      filter: drop-shadow(0 0 3px rgba(180,0,0,0.6)) grayscale(1) brightness(0.5) sepia(1) saturate(5) hue-rotate(310deg);
       font-variant-emoji: text;
+      opacity: 0.7;
     }
-    .star-btn:hover      { transform: scale(1.2); color: #aa0000; }
+    .star-btn:hover      { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 6px rgba(220,0,0,0.9)) grayscale(1) brightness(0.6) sepia(1) saturate(8) hue-rotate(310deg); }
     .star-btn.lit        {
-      color: #cc0000;
-      filter: drop-shadow(0 0 4px rgba(180,0,0,0.5));
+      opacity: 1;
+      filter: drop-shadow(0 0 5px rgba(200,0,0,0.7)) grayscale(1) brightness(0.7) sepia(1) saturate(10) hue-rotate(310deg);
     }
     .star-btn.saved      {
-      color: #ff2020;
-      filter: drop-shadow(0 0 8px rgba(255,0,0,0.8));
+      opacity: 1;
+      filter: drop-shadow(0 0 10px rgba(255,40,40,1)) grayscale(1) brightness(0.8) sepia(1) saturate(15) hue-rotate(310deg);
     }
     .rating-sublabel {
       font-size: 11px; color: rgba(200,140,120,0.8); min-height: 16px; letter-spacing: 1px;
