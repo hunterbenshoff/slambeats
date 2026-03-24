@@ -1050,84 +1050,80 @@
       .site-header { flex-shrink: 0; align-items: flex-start; justify-content: flex-start; }
       .header-logo { width: min(640px, 85vw); height: auto; margin: 0; }
 
-      /* Tab nav stops before the artwork column — right side shows banner/dark bg */
-      .tab-nav {
-        position: sticky; top: 0;
-        max-width: calc((100% - 24px) * 1.1 / 2.1 + 32px);
-        border-right: none;
-      }
+      /* Tab nav stops at 56vw — right 44vw is open for artwork */
+      .tab-nav { position: sticky; top: 0; max-width: 56vw; }
 
-      /* All panels fill remaining height; non-KF panels scroll internally */
+      /* All panels fill remaining height */
       .tab-panel {
-        flex: 1;
-        min-height: 0;
-        max-width: 100%;
-        width: 100%;
+        flex: 1; min-height: 0;
+        max-width: 100%; width: 100%;
         margin: 0 auto;
         padding: 14px 32px 14px;
         overflow-y: auto;
       }
 
-      /* KF panel: no outer scroll, flex column */
+      /* KF panel: no scroll, leave right 44vw for fixed artwork */
       #panel-killing-floor {
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        padding-right: 44vw; /* room for fixed artwork */
       }
 
-      /* Two-column grid: info left, artwork right */
+      /* Grid: single column — artwork is fixed, not in flow */
       .kf-grid {
-        flex: 1;
-        min-height: 0;
+        flex: 1; min-height: 0;
         display: grid;
-        grid-template-columns: 1.1fr 1fr;
-        gap: 24px;
+        grid-template-columns: 1fr;
         overflow: hidden;
       }
+      .kf-right { order: 1; }
 
-      /* Swap visual order: info on left, artwork on right */
-      .kf-left  { order: 2; } /* artwork → right */
-      .kf-right { order: 1; } /* info   → left  */
-
-      /* ── Right column (artwork): full height, no card chrome ── */
+      /* ── ARTWORK: fixed full-height panel on right, bleeds over banner ── */
       .kf-left {
-        display: flex;
+        position: fixed !important;
+        right: 0; top: 0;
+        width: 44vw;
+        height: 100dvh;
+        display: flex !important;
         flex-direction: column;
-        min-height: 0;
+        gap: 6px;
+        padding: 10px 12px 12px;
+        z-index: 2;
         overflow: hidden;
-        position: static;
-        gap: 8px;
+        order: unset;
+        min-height: unset;
       }
+
+      /* Artwork card: no chrome, artwork IS the element */
       .kf-art-card {
-        flex: 1;
-        min-height: 0;
+        flex: 1; min-height: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
         overflow: hidden;
-        /* No card background — artwork is the visual */
         background: transparent;
         border: none;
         box-shadow: none;
         padding: 0;
       }
+      /* Date centered above artwork */
       .artwork-date {
+        flex-shrink: 0;
         width: 100%;
         text-align: center;
-        padding: 0 0 6px;
-        flex-shrink: 0;
+        padding: 4px 0 6px;
       }
+      /* Artwork: square, fills all available height */
       .kf-art-card .artwork-wrap {
-        flex: 1;
-        min-height: 0;
-        width: auto;
-        max-width: 100%;
+        flex: 1; min-height: 0;
+        width: auto; max-width: 100%;
         aspect-ratio: 1;
-        border-radius: 10px;
+        border-radius: 12px;
         margin-bottom: 0;
+        cursor: pointer;
       }
-      /* Show full artwork — no cropping */
-      .kf-art-card .artwork-wrap img { object-fit: contain; }
+      .kf-art-card .artwork-wrap img { object-fit: cover; }
       .kf-art-card .artwork-wrap .artwork-placeholder { font-size: 120px; }
 
       /* ── Right column: scrolls internally if content taller than viewport ── */
