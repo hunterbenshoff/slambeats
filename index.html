@@ -402,7 +402,7 @@
       text-transform: uppercase; color: rgba(200,100,80,0.9);
       margin-bottom: 12px;
     }
-    .star-row { display: flex; gap: 10px; margin-bottom: 8px; justify-content: space-between; }
+    .star-row { display: flex; gap: 6px; flex: 1; }
     .star-btn {
       background: none; border: none;
       font-size: 52px; color: rgba(200,100,80,0.9);
@@ -414,8 +414,16 @@
     .star-btn:hover      { transform: scale(1.2); color: #cc0000; }
     .star-btn.lit        { color: #cc0000; filter: drop-shadow(0 0 4px rgba(200,0,0,0.6)); }
     .star-btn.saved      { color: #ff3030; filter: drop-shadow(0 0 8px rgba(255,0,0,0.9)); }
+    .rating-row {
+      display: flex; align-items: center; gap: 12px;
+    }
     .rating-sublabel {
-      font-size: 11px; color: rgba(200,140,120,0.8); min-height: 16px; letter-spacing: 1px;
+      font-size: 28px; font-weight: 800;
+      color: rgba(200,100,80,0.9);
+      letter-spacing: 1px; min-width: 0;
+      flex-shrink: 0; text-align: right;
+      text-transform: uppercase;
+      min-height: 36px;
     }
     .community-rating {
       margin-top: 14px; display: none; text-align: center;
@@ -1128,14 +1136,16 @@
     <!-- Rating section -->
     <div class="rating-section">
       <p class="rating-label">Rate Today's Album</p>
-      <div class="star-row" id="star-row">
-        <button class="star-btn" data-val="1" onclick="setRating(1)">&#x2620;&#xFE0E;</button>
-        <button class="star-btn" data-val="2" onclick="setRating(2)">&#x2620;&#xFE0E;</button>
-        <button class="star-btn" data-val="3" onclick="setRating(3)">&#x2620;&#xFE0E;</button>
-        <button class="star-btn" data-val="4" onclick="setRating(4)">&#x2620;&#xFE0E;</button>
-        <button class="star-btn" data-val="5" onclick="setRating(5)">&#x2620;&#xFE0E;</button>
+      <div class="rating-row">
+        <div class="star-row" id="star-row">
+          <button class="star-btn" data-val="1" onclick="setRating(1)">&#x2620;&#xFE0E;</button>
+          <button class="star-btn" data-val="2" onclick="setRating(2)">&#x2620;&#xFE0E;</button>
+          <button class="star-btn" data-val="3" onclick="setRating(3)">&#x2620;&#xFE0E;</button>
+          <button class="star-btn" data-val="4" onclick="setRating(4)">&#x2620;&#xFE0E;</button>
+          <button class="star-btn" data-val="5" onclick="setRating(5)">&#x2620;&#xFE0E;</button>
+        </div>
+        <p class="rating-sublabel" id="rating-sublabel"></p>
       </div>
-      <p class="rating-sublabel" id="rating-sublabel"></p>
       <div class="community-rating" id="community-rating"></div>
     </div>
 
