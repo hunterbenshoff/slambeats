@@ -1117,17 +1117,16 @@
         min-height: unset;
       }
 
-      /* Artwork card: takes available space above newsletter */
+      /* Artwork card: column, artwork fills space, bottom bar below */
       .kf-art-card {
         flex: 1 1 0;
         min-height: 0;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        overflow: visible;
-        /* inherits .album-card background, border, border-radius, padding */
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 0;
+        overflow: hidden;
       }
       /* Date: centered below artwork, proportional to panel width */
       .artwork-date {
@@ -1146,18 +1145,66 @@
       }
       /* Hide the tab-nav date — the card date replaces it */
       #date-display { display: none; }
-      /* Artwork: never crop — flex-shrink:0 keeps it square, contain shows full cover */
+      /* Artwork: fills available space above bottom bar */
       .kf-art-card .artwork-wrap {
         width: 100%;
-        max-width: 100%;
+        flex: 1 1 0;
+        min-height: 0;
         aspect-ratio: 1;
+        max-height: 52vh;
         border-radius: 10px;
         cursor: pointer;
         position: relative;
         flex-shrink: 0;
       }
       .kf-art-card .artwork-wrap img { object-fit: contain; background: #0a0306; }
-      .kf-art-card .artwork-wrap .artwork-placeholder { font-size: 100px; }
+      .kf-art-card .artwork-wrap .artwork-placeholder { font-size: 80px; }
+
+      /* ── Bottom info bar ── */
+      .kf-art-bottom {
+        display: flex;
+        gap: 10px;
+        flex-shrink: 0;
+        border-top: 1px solid rgba(180,20,20,0.2);
+        margin-top: 8px;
+        padding-top: 8px;
+        align-items: flex-start;
+      }
+      /* LEFT: album title + date */
+      .kf-art-bl {
+        flex: 0 0 44%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        padding-right: 8px;
+        border-right: 1px solid rgba(180,20,20,0.15);
+      }
+      /* RIGHT: artist + meta + skulls + service */
+      .kf-art-br {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .kf-br-rating {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+      }
+      .kf-br-svc {
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+      }
+      /* Picker inside bottom-right: compact, no label */
+      .kf-br-svc #view-pick .picker-label { display: none; }
+      .kf-br-svc #view-pick .service-grid { gap: 5px; padding: 0; justify-content: flex-start; }
+      .kf-br-svc #view-pick .service-btn img { width: 24px; height: 24px; }
+      .kf-br-svc #view-selected { width: 24px; height: 24px; }
+      .kf-br-svc #view-selected img { width: 24px; height: 24px; border-radius: 6px; }
 
       /* ── Right column: scrolls internally if content taller than viewport ── */
       .kf-right {
@@ -1208,37 +1255,27 @@
       .kf-art-card  { padding: 12px 14px; }
       .kf-info-card { padding: 10px 14px; }
 
-      /* Album info */
-      .album-title  { font-size: 19px; margin-bottom: 1px; }
-      .album-artist { font-size: 13px; margin-bottom: 2px; }
-      .album-meta   { margin-bottom: 4px; gap: 6px; }
-      .tag  { font-size: 9px; padding: 2px 7px; }
-      .year { font-size: 11px; }
-
-      /* Rating — compact, no wasted height */
-      .rating-section   { padding: 6px 10px; margin-top: 0; }
-      .rating-label     { font-size: 9px; margin-bottom: 3px; }
-      .star-row         { gap: 2px; }
-      .star-btn         { font-size: 26px; }
-      .rating-sublabel  { font-size: 14px; }
-      .community-rating { font-size: 10px; margin-top: 2px; }
-
-      /* Album header row: title/artist left, service icons right */
-      .album-header-row {
-        display: flex; align-items: flex-start;
-        justify-content: space-between; gap: 10px;
-        margin-bottom: 4px;
+      /* Bottom-left: album title + date */
+      .kf-art-bl .album-title { font-size: 14px; line-height: 1.2; margin: 0; font-weight: 800; }
+      .kf-art-bl .artwork-date {
+        font-size: clamp(8px, 0.7vw, 11px);
+        letter-spacing: clamp(1px, 0.15vw, 3px);
+        text-align: left;
+        padding: 0;
       }
-      .album-header-text { flex: 1; min-width: 0; }
-      .album-header-row #view-pick { flex-shrink: 0; padding-top: 2px; }
-      .album-header-row #view-pick .picker-label { display: none; }
-      .album-header-row #view-pick .service-grid { gap: 6px; padding: 0; justify-content: flex-end; }
-      .album-header-row #view-pick .service-btn img { width: 28px; height: 28px; }
-      .album-header-row #view-selected { width: 28px; height: 28px; padding-top: 2px; }
-      .album-header-row #view-selected img { width: 28px; height: 28px; border-radius: 7px; }
+      /* Bottom-right: artist + meta + rating + service */
+      .kf-art-br .album-artist { font-size: 11px; margin: 0; color: var(--sub); }
+      .kf-art-br .album-meta   { margin: 0; gap: 4px; }
+      .tag  { font-size: 8px; padding: 1px 5px; }
+      .year { font-size: 9px; }
+      /* Rating skulls in bottom-right */
+      .star-row         { gap: 1px; }
+      .star-btn         { font-size: 22px; }
+      .rating-sublabel  { font-size: 12px; }
+      .community-rating { font-size: 9px; margin-top: 1px; }
 
-      /* Metrics — 4 cols, tight cards */
-      .kf-info-card .metrics-wrap { margin-top: 4px; }
+      /* Metrics — 4 cols, tight cards, sits at top of community card */
+      .kf-info-card .metrics-wrap { margin-top: 0; }
       .metrics-wrap .section-label { margin-bottom: 2px; font-size: 9px; }
       .metrics-grid { grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 0; }
       .metric-card   { padding: 5px 6px; border-radius: 7px; }
@@ -1337,7 +1374,7 @@
 
   <div class="kf-grid">
 
-    <!-- ── RIGHT COLUMN: Full artwork, date below ── -->
+    <!-- ── RIGHT COLUMN: Artwork + info bar below ── -->
     <div class="kf-left">
       <div class="album-card kf-art-card">
 
@@ -1346,61 +1383,60 @@
           <img id="artwork-img" style="display:none" alt="Album artwork">
         </div>
 
-        <p class="artwork-date" id="artwork-date"></p>
+        <!-- Info bar below artwork: left = album+date, right = artist+rating+service -->
+        <div class="kf-art-bottom">
 
-      </div><!-- /kf-art-card -->
+          <div class="kf-art-bl">
+            <h1 class="album-title" id="album-title"></h1>
+            <p class="artwork-date" id="artwork-date"></p>
+          </div>
 
-
-    </div><!-- /kf-left -->
-
-    <!-- ── RIGHT COLUMN: Info + Rating + Comments + Spotify ── -->
-    <div class="kf-right">
-      <div class="album-card kf-info-card">
-
-        <!-- Info + service icons on same row -->
-        <div class="album-header-row">
-          <div class="album-header-text">
-            <h1 class="album-title"  id="album-title"></h1>
-            <p  class="album-artist" id="album-artist"></p>
+          <div class="kf-art-br">
+            <p class="album-artist" id="album-artist"></p>
             <div class="album-meta">
               <span class="tag"  id="album-genre"></span>
               <span class="year" id="album-year"></span>
             </div>
-          </div>
-          <!-- Service icons — far right, no label -->
-          <div id="view-pick">
-            <div class="service-grid">
-              <button class="service-btn" onclick="pickService('apple')">
-                <img src="logo-apple-music.svg" alt="Apple Music"><span>Apple Music</span>
-              </button>
-              <button class="service-btn" onclick="pickService('spotify')">
-                <img src="logo-spotify.svg" alt="Spotify"><span>Spotify</span>
-              </button>
-              <button class="service-btn" onclick="pickService('youtube')">
-                <img src="logo-youtube-music.svg" alt="YouTube Music"><span>YouTube Music</span>
-              </button>
+            <div class="kf-br-rating">
+              <div class="star-row" id="star-row">
+                <button class="star-btn" data-val="1" onclick="setRating(1)">&#x2620;&#xFE0E;</button>
+                <button class="star-btn" data-val="2" onclick="setRating(2)">&#x2620;&#xFE0E;</button>
+                <button class="star-btn" data-val="3" onclick="setRating(3)">&#x2620;&#xFE0E;</button>
+                <button class="star-btn" data-val="4" onclick="setRating(4)">&#x2620;&#xFE0E;</button>
+                <button class="star-btn" data-val="5" onclick="setRating(5)">&#x2620;&#xFE0E;</button>
+              </div>
+              <p class="rating-sublabel" id="rating-sublabel"></p>
+            </div>
+            <div class="community-rating" id="community-rating"></div>
+            <div class="kf-br-svc">
+              <div id="view-pick">
+                <div class="service-grid">
+                  <button class="service-btn" onclick="pickService('apple')">
+                    <img src="logo-apple-music.svg" alt="Apple Music"><span>Apple Music</span>
+                  </button>
+                  <button class="service-btn" onclick="pickService('spotify')">
+                    <img src="logo-spotify.svg" alt="Spotify"><span>Spotify</span>
+                  </button>
+                  <button class="service-btn" onclick="pickService('youtube')">
+                    <img src="logo-youtube-music.svg" alt="YouTube Music"><span>YouTube Music</span>
+                  </button>
+                </div>
+              </div>
+              <div id="view-selected" onclick="resetService()" title="Tap to change service">
+                <img id="selected-svc-icon" src="" alt="">
+              </div>
             </div>
           </div>
-          <div id="view-selected" onclick="resetService()" title="Tap to change service">
-            <img id="selected-svc-icon" src="" alt="">
-          </div>
-        </div>
 
-        <!-- Rating section -->
-        <div class="rating-section">
-          <p class="rating-label">Rate Today's Album</p>
-          <div class="rating-row">
-            <div class="star-row" id="star-row">
-              <button class="star-btn" data-val="1" onclick="setRating(1)">&#x2620;&#xFE0E;</button>
-              <button class="star-btn" data-val="2" onclick="setRating(2)">&#x2620;&#xFE0E;</button>
-              <button class="star-btn" data-val="3" onclick="setRating(3)">&#x2620;&#xFE0E;</button>
-              <button class="star-btn" data-val="4" onclick="setRating(4)">&#x2620;&#xFE0E;</button>
-              <button class="star-btn" data-val="5" onclick="setRating(5)">&#x2620;&#xFE0E;</button>
-            </div>
-            <p class="rating-sublabel" id="rating-sublabel"></p>
-          </div>
-          <div class="community-rating" id="community-rating"></div>
-        </div>
+        </div><!-- /kf-art-bottom -->
+
+      </div><!-- /kf-art-card -->
+
+    </div><!-- /kf-left -->
+
+    <!-- ── LEFT COLUMN: Community metrics + Comments ── -->
+    <div class="kf-right">
+      <div class="album-card kf-info-card">
 
         <!-- Community Metrics -->
         <div class="metrics-wrap" id="metrics-wrap">

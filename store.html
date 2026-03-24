@@ -48,14 +48,40 @@
     .tab-btn:hover  { color: var(--amber); }
     .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
     .tab-right-cluster { margin-left: auto; display: flex; align-items: center; gap: 10px; padding-right: 4px; }
+    .tab-user-btn {
+      background: none; border: 1px solid #b01010; color: #e0e0e8;
+      font-family: 'Nosifer', cursive; font-size: 11px;
+      padding: 4px 10px; cursor: pointer; white-space: nowrap; letter-spacing: 1px;
+    }
+    .tab-user-btn:hover { background: rgba(176,16,16,0.15); }
+    #profile-card {
+      position: fixed; top: 0; right: 0; width: 260px;
+      background: #0d0d0d; border: 1px solid #b01010; border-top: none;
+      z-index: 999; padding: 20px; box-shadow: -4px 4px 20px rgba(0,0,0,0.8);
+    }
+    .pc-handle { font-family: 'Nosifer', cursive; color: #b01010; font-size: 16px; margin-bottom: 6px; }
+    .pc-since  { font-size: 11px; color: #666; margin-bottom: 12px; }
+    .pc-stats  { font-size: 12px; color: #999; margin-bottom: 14px; line-height: 1.8; }
+    .profile-logout {
+      width: 100%; background: transparent; border: 1px solid rgba(180,20,20,0.4);
+      color: var(--muted); padding: 8px; font-size: 10px; letter-spacing: 2px;
+      text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+    }
+    .profile-logout:hover { border-color: var(--red); color: var(--red); }
+    .profile-login-btn {
+      width: 100%; background: var(--red); color: #fff; border: none;
+      padding: 14px; border-radius: 8px; font-size: 13px;
+      font-weight: 800; letter-spacing: 2px; cursor: pointer;
+    }
+    .profile-login-btn:hover { background: #a01010; }
 
-    /* ── Mobile nav ── */
     .mobile-nav { display: none; }
     @media (max-width: 768px) {
       .tab-nav { display: none; }
       .mobile-nav { display: block; position: sticky; top: 0; z-index: 25; background: rgba(8,2,4,0.98); border-bottom: 2px solid rgba(176,16,16,0.55); }
       .mobile-menu-bar { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 46px; }
       .mobile-active-tab { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--amber); }
+      .mobile-right { display: flex; align-items: center; gap: 8px; }
       .mobile-menu-toggle { background: none; border: 1px solid rgba(176,16,16,0.5); color: var(--muted); font-size: 18px; width: 32px; height: 32px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
       .mobile-dropdown { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
       .mobile-dropdown.open { max-height: 400px; }
@@ -63,7 +89,6 @@
       .mobile-tab-btn:hover, .mobile-tab-btn.active { color: var(--amber); background: rgba(176,16,16,0.08); }
     }
 
-    /* ── Page content ── */
     .page-content { max-width: 720px; margin: 0 auto; padding: 32px 24px 60px; }
     .shop-header { padding: 8px 0 28px; border-bottom: 1px solid rgba(180,20,20,0.2); margin-bottom: 28px; }
     .shop-title { font-size: 36px; font-weight: 900; letter-spacing: 2px; color: #f0e6d3; text-transform: uppercase; line-height: 1; margin-bottom: 8px; }
@@ -87,13 +112,18 @@
   <button class="tab-btn" onclick="window.location.href='slamletterr.html'">The SlamLetter</button>
   <button class="tab-btn" onclick="window.location.href='crypt.html'">The Crypt</button>
   <button class="tab-btn active">Store</button>
-  <div class="tab-right-cluster"></div>
+  <div class="tab-right-cluster">
+    <button class="tab-user-btn" id="tab-user-btn" onclick="toggleProfileCard()"></button>
+  </div>
 </nav>
 
 <nav class="mobile-nav">
   <div class="mobile-menu-bar">
     <span class="mobile-active-tab">Store</span>
-    <button class="mobile-menu-toggle" onclick="this.closest('.mobile-nav').querySelector('.mobile-dropdown').classList.toggle('open')">☰</button>
+    <div class="mobile-right">
+      <button class="tab-user-btn" id="mobile-user-btn" onclick="toggleProfileCard()" style="font-size:10px;padding:4px 8px;"></button>
+      <button class="mobile-menu-toggle" onclick="this.closest('.mobile-nav').querySelector('.mobile-dropdown').classList.toggle('open')">☰</button>
+    </div>
   </div>
   <div class="mobile-dropdown">
     <button class="mobile-tab-btn" onclick="window.location.href='index.html'">The Killing Floor</button>
@@ -102,6 +132,18 @@
     <button class="mobile-tab-btn active">Store</button>
   </div>
 </nav>
+
+<div id="profile-card" style="display:none">
+  <div id="profile-card-logged-in" style="display:none">
+    <div class="pc-handle" id="pc-handle"></div>
+    <div class="pc-since"  id="pc-since"></div>
+    <div class="pc-stats"  id="pc-stats"></div>
+    <button class="profile-logout" onclick="logoutUser()">LOG OUT</button>
+  </div>
+  <div id="profile-card-logged-out" style="display:none">
+    <button class="profile-login-btn" onclick="window.location.href='index.html'">ENTER THE PIT</button>
+  </div>
+</div>
 
 <div class="page-content">
 
@@ -134,5 +176,54 @@
   </div>
 
 </div>
+
+<script>
+function getUsername() { return localStorage.getItem('slambeats_username'); }
+function getUserId()   { return localStorage.getItem('slambeats_uid'); }
+
+let profileCardOpen = false;
+function toggleProfileCard() {
+    profileCardOpen = !profileCardOpen;
+    document.getElementById('profile-card').style.display = profileCardOpen ? 'block' : 'none';
+    if (profileCardOpen) openProfile();
+}
+function openProfile() {
+    const username = getUsername(); const uid = getUserId();
+    updateUserBtn();
+    if (username && uid) {
+        document.getElementById('profile-card-logged-in').style.display  = 'block';
+        document.getElementById('profile-card-logged-out').style.display = 'none';
+        document.getElementById('pc-handle').textContent = username.toUpperCase();
+        document.getElementById('pc-since').textContent  = 'Member';
+        document.getElementById('pc-stats').textContent  = '';
+    } else {
+        document.getElementById('profile-card-logged-in').style.display  = 'none';
+        document.getElementById('profile-card-logged-out').style.display = 'block';
+    }
+}
+function updateUserBtn() {
+    const label = getUsername() ? getUsername().toUpperCase() : 'LOG IN';
+    const btn = document.getElementById('tab-user-btn');
+    if (btn) btn.textContent = label;
+    const mBtn = document.getElementById('mobile-user-btn');
+    if (mBtn) mBtn.textContent = label;
+}
+function logoutUser() {
+    localStorage.removeItem('slambeats_uid');
+    localStorage.removeItem('slambeats_username');
+    profileCardOpen = false;
+    document.getElementById('profile-card').style.display = 'none';
+    updateUserBtn();
+}
+document.addEventListener('click', function(e) {
+    if (profileCardOpen &&
+        !document.getElementById('profile-card').contains(e.target) &&
+        !document.getElementById('tab-user-btn').contains(e.target)) {
+        profileCardOpen = false;
+        document.getElementById('profile-card').style.display = 'none';
+    }
+});
+updateUserBtn();
+</script>
 </body>
 </html>
