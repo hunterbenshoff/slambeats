@@ -2601,19 +2601,39 @@ function getUserBadges(stats) {
 async function renderMetrics(cache) {
     const grid = document.getElementById('metrics-grid');
     if (!grid) return;
+
+    const today    = getTodayStr();
     const allDates = Object.keys(cache);
-    const totalRatings = allDates.reduce((s, d) => s + cache[d].count, 0);
-    const albumsRated  = allDates.length;
-    const today        = getTodayStr();
-    const todayVotes   = cache[today] ? cache[today].count : 0;
-    const allVals      = allDates.flatMap(d => cache[d].ratings.map(r => r.rating));
-    const avgScore     = allVals.length > 0 ? (allVals.reduce((s,v)=>s+v,0)/allVals.length).toFixed(1) : '—';
+    const allVals  = allDates.flatMap(d => cache[d].ratings.map(r => r.rating));
+
+    // Today's vote count
+    const todayVotes = cache[today] ? cache[today].count : 0;
+
+    // Community avg score across all time
+    const avgScore = allVals.length > 0
+        ? (allVals.reduce((s,v) => s+v, 0) / allVals.length).toFixed(1)
+        : '—';
+
+    // Unique voices — distinct user_ids who have ever rated
+    const allUserIds = new Set(allDates.flatMap(d => cache[d].ratings.map(r => r.user_id)));
+    const uniqueVoices = allUserIds.size;
+
+    // Today's comment count
+    let todayComments = '—';
+    try {
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/comments?album_date=eq.${today}&select=id`,
+            { headers: SB_HEADERS }
+        );
+        const data = await res.json();
+        todayComments = Array.isArray(data) ? data.length : '—';
+    } catch(e) {}
 
     grid.innerHTML = [
-        { n: totalRatings, l: 'Total Ratings' },
-        { n: albumsRated,  l: 'Albums Rated' },
-        { n: todayVotes,   l: "Today's Votes" },
-        { n: avgScore,     l: 'Avg Score' },
+        { n: todayVotes,    l: 'Voted Today' },
+        { n: todayComments, l: 'In the Pit' },
+        { n: avgScore,      l: 'Community Avg' },
+        { n: uniqueVoices,  l: 'Unique Voices' },
     ].map(m => `<div class="metric-card">
         <span class="metric-number">${m.n}</span>
         <span class="metric-label">${m.l}</span>
