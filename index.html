@@ -1099,6 +1099,22 @@
       <span class="year" id="album-year"></span>
     </div>
 
+    <!-- Rating section -->
+    <div class="rating-section">
+      <p class="rating-label">Rate Today's Album</p>
+      <div class="rating-row">
+        <div class="star-row" id="star-row">
+          <button class="star-btn" data-val="1" onclick="setRating(1)">&#x2620;&#xFE0E;</button>
+          <button class="star-btn" data-val="2" onclick="setRating(2)">&#x2620;&#xFE0E;</button>
+          <button class="star-btn" data-val="3" onclick="setRating(3)">&#x2620;&#xFE0E;</button>
+          <button class="star-btn" data-val="4" onclick="setRating(4)">&#x2620;&#xFE0E;</button>
+          <button class="star-btn" data-val="5" onclick="setRating(5)">&#x2620;&#xFE0E;</button>
+        </div>
+        <p class="rating-sublabel" id="rating-sublabel"></p>
+      </div>
+      <div class="community-rating" id="community-rating"></div>
+    </div>
+
     <!-- Pick service -->
     <div id="view-pick">
       <p class="picker-label">Where do you listen?</p>
@@ -1131,22 +1147,6 @@
       <div class="change-service">
         <button onclick="resetService()">Change streaming service</button>
       </div>
-    </div>
-
-    <!-- Rating section -->
-    <div class="rating-section">
-      <p class="rating-label">Rate Today's Album</p>
-      <div class="rating-row">
-        <div class="star-row" id="star-row">
-          <button class="star-btn" data-val="1" onclick="setRating(1)">&#x2620;&#xFE0E;</button>
-          <button class="star-btn" data-val="2" onclick="setRating(2)">&#x2620;&#xFE0E;</button>
-          <button class="star-btn" data-val="3" onclick="setRating(3)">&#x2620;&#xFE0E;</button>
-          <button class="star-btn" data-val="4" onclick="setRating(4)">&#x2620;&#xFE0E;</button>
-          <button class="star-btn" data-val="5" onclick="setRating(5)">&#x2620;&#xFE0E;</button>
-        </div>
-        <p class="rating-sublabel" id="rating-sublabel"></p>
-      </div>
-      <div class="community-rating" id="community-rating"></div>
     </div>
 
   </div><!-- /album-card -->
