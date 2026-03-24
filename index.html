@@ -249,7 +249,6 @@
       background: #c01818;
     }
     .mobile-dropdown {
-      display: none;
       position: absolute;
       top: 46px;
       left: 0; right: 0;
@@ -257,8 +256,12 @@
       border-bottom: 2px solid rgba(176,16,16,0.55);
       z-index: 24;
       flex-direction: column;
+      display: flex;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
     }
-    .mobile-dropdown.open { display: flex; }
+    .mobile-dropdown.open { max-height: 400px; }
     .mobile-tab-btn {
       background: none;
       border: none;
@@ -1030,9 +1033,12 @@
 <div class="mobile-nav" id="mobile-nav">
   <div class="mobile-menu-bar">
     <span class="mobile-active-tab" id="mobile-active-label">The Killing Floor</span>
-    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="tab-user-btn" id="mobile-user-btn" onclick="toggleProfileCard()" style="font-size:10px;padding:4px 8px;"></button>
+      <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </div>
   <div class="mobile-dropdown" id="mobile-dropdown">
     <button class="mobile-tab-btn active" onclick="mobileSwitchTab('killing-floor','The Killing Floor')">The Killing Floor</button>
@@ -2101,10 +2107,12 @@ function logoutUser() {
 
 // ── PROFILE TAB ───────────────────────────────────────────────
 function updateUserBtn() {
-    const btn = document.getElementById('tab-user-btn');
-    if (!btn) return;
     const username = getUsername();
-    btn.textContent = username ? username.toUpperCase() : 'LOG IN';
+    const label = username ? username.toUpperCase() : 'LOG IN';
+    const btn = document.getElementById('tab-user-btn');
+    if (btn) btn.textContent = label;
+    const mobileBtn = document.getElementById('mobile-user-btn');
+    if (mobileBtn) mobileBtn.textContent = label;
 }
 
 async function openProfile() {
