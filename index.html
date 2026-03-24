@@ -1172,6 +1172,10 @@
       .kf-art-card .artwork-wrap img { object-fit: contain; background: #0a0306; }
       .kf-art-card .artwork-wrap .artwork-placeholder { font-size: 100px; }
 
+      /* Album info: right-aligned in the card */
+      .album-header-text { text-align: right; }
+      .album-meta { justify-content: flex-end; }
+
       /* ── Right column: scrolls internally if content taller than viewport ── */
       .kf-right {
         display: flex;
@@ -1377,10 +1381,9 @@
 
       </div><!-- /kf-art-card -->
 
-
     </div><!-- /kf-left -->
 
-    <!-- ── RIGHT COLUMN: Info + Rating + Comments + Spotify ── -->
+    <!-- ── LEFT COLUMN: Info + Rating + Comments ── -->
     <div class="kf-right">
       <div class="album-card kf-info-card">
 
