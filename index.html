@@ -312,6 +312,9 @@
     .tab-panel { max-width: 540px; margin: 0 auto; padding: 24px 16px 48px; }
     .tab-panel.hidden { display: none; }
 
+    /* ── Killing Floor grid (mobile: single column) ──────────── */
+    .kf-grid { display: flex; flex-direction: column; gap: 16px; }
+
     /* ── Album card (today) ──────────────────────────────────── */
     .album-card {
       background: var(--card);
@@ -1022,6 +1025,40 @@
       text-transform: uppercase;
       padding: 0 12px 12px;
     }
+
+    /* ── Killing Floor: desktop two-column layout ─────────── */
+    @media (min-width: 769px) {
+      #panel-killing-floor {
+        max-width: 1020px;
+      }
+      .kf-grid {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+      .kf-left {
+        position: sticky;
+        top: 20px;
+      }
+      .kf-art-card .artwork-wrap {
+        margin-bottom: 14px;
+      }
+      /* Compact spotify on desktop */
+      .kf-spotify iframe {
+        height: 152px !important;
+      }
+      /* Scrollable comments list on desktop */
+      #comments-list {
+        max-height: 260px;
+        overflow-y: auto;
+        padding-right: 4px;
+      }
+      #comments-list::-webkit-scrollbar { width: 4px; }
+      #comments-list::-webkit-scrollbar-track { background: transparent; }
+      #comments-list::-webkit-scrollbar-thumb { background: rgba(176,16,16,0.35); border-radius: 4px; }
+    }
+
   </style>
 </head>
 <body>
@@ -1083,110 +1120,121 @@
 
 <!-- ════════════════ KILLING FLOOR PANEL ════════════════ -->
 <div class="tab-panel" id="panel-killing-floor">
-  <div class="album-card">
 
-    <!-- Artwork -->
-    <div class="artwork-wrap">
-      <div class="artwork-placeholder" id="artwork-placeholder">🎵</div>
-      <img id="artwork-img" style="display:none" alt="Album artwork">
-    </div>
+  <div class="kf-grid">
 
-    <!-- Info -->
-    <h1 class="album-title"  id="album-title"></h1>
-    <p  class="album-artist" id="album-artist"></p>
-    <div class="album-meta">
-      <span class="tag"  id="album-genre"></span>
-      <span class="year" id="album-year"></span>
-    </div>
+    <!-- ── LEFT COLUMN: Artwork + Streaming ── -->
+    <div class="kf-left">
+      <div class="album-card kf-art-card">
 
-    <!-- Rating section -->
-    <div class="rating-section">
-      <p class="rating-label">Rate Today's Album</p>
-      <div class="rating-row">
-        <div class="star-row" id="star-row">
-          <button class="star-btn" data-val="1" onclick="setRating(1)">&#x2620;&#xFE0E;</button>
-          <button class="star-btn" data-val="2" onclick="setRating(2)">&#x2620;&#xFE0E;</button>
-          <button class="star-btn" data-val="3" onclick="setRating(3)">&#x2620;&#xFE0E;</button>
-          <button class="star-btn" data-val="4" onclick="setRating(4)">&#x2620;&#xFE0E;</button>
-          <button class="star-btn" data-val="5" onclick="setRating(5)">&#x2620;&#xFE0E;</button>
+        <div class="artwork-wrap">
+          <div class="artwork-placeholder" id="artwork-placeholder">🎵</div>
+          <img id="artwork-img" style="display:none" alt="Album artwork">
         </div>
-        <p class="rating-sublabel" id="rating-sublabel"></p>
+
+        <!-- Pick service -->
+        <div id="view-pick">
+          <p class="picker-label">Where do you listen?</p>
+          <div class="service-grid">
+            <button class="service-btn" onclick="pickService('apple')">
+              <img src="logo-apple-music.svg" alt="Apple Music">
+              <span>Apple Music</span>
+            </button>
+            <button class="service-btn" onclick="pickService('spotify')">
+              <img src="logo-spotify.svg" alt="Spotify">
+              <span>Spotify</span>
+            </button>
+            <button class="service-btn" onclick="pickService('youtube')">
+              <img src="logo-youtube-music.svg" alt="YouTube Music">
+              <span>YouTube Music</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Listen button -->
+        <div id="view-listen">
+          <a id="listen-link" class="listen-btn" target="_blank" rel="noopener">
+            <svg class="btn-icon" id="btn-icon" viewBox="0 0 24 24" fill="currentColor"></svg>
+            <span id="btn-label">Listen Now</span>
+          </a>
+          <div class="change-service">
+            <button onclick="resetService()">Change streaming service</button>
+          </div>
+        </div>
+
+      </div><!-- /kf-art-card -->
+    </div><!-- /kf-left -->
+
+    <!-- ── RIGHT COLUMN: Info + Rating + Comments + Spotify ── -->
+    <div class="kf-right">
+      <div class="album-card kf-info-card">
+
+        <!-- Info -->
+        <h1 class="album-title"  id="album-title"></h1>
+        <p  class="album-artist" id="album-artist"></p>
+        <div class="album-meta">
+          <span class="tag"  id="album-genre"></span>
+          <span class="year" id="album-year"></span>
+        </div>
+
+        <!-- Rating section -->
+        <div class="rating-section">
+          <p class="rating-label">Rate Today's Album</p>
+          <div class="rating-row">
+            <div class="star-row" id="star-row">
+              <button class="star-btn" data-val="1" onclick="setRating(1)">&#x2620;&#xFE0E;</button>
+              <button class="star-btn" data-val="2" onclick="setRating(2)">&#x2620;&#xFE0E;</button>
+              <button class="star-btn" data-val="3" onclick="setRating(3)">&#x2620;&#xFE0E;</button>
+              <button class="star-btn" data-val="4" onclick="setRating(4)">&#x2620;&#xFE0E;</button>
+              <button class="star-btn" data-val="5" onclick="setRating(5)">&#x2620;&#xFE0E;</button>
+            </div>
+            <p class="rating-sublabel" id="rating-sublabel"></p>
+          </div>
+          <div class="community-rating" id="community-rating"></div>
+        </div>
+
+        <!-- Community Metrics -->
+        <div class="metrics-wrap" id="metrics-wrap">
+          <p class="section-label">COMMUNITY PULSE</p>
+          <div class="metrics-grid" id="metrics-grid">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-wrap" id="comments-wrap">
+          <p class="section-label">THE PIT TALK</p>
+          <div id="comment-input-area">
+            <textarea id="comment-input" placeholder="Say something about today's album..." maxlength="280" rows="3"></textarea>
+            <div class="comment-input-footer">
+              <span id="comment-char-count">280</span>
+              <button id="comment-submit-btn" onclick="submitComment()">Post</button>
+            </div>
+            <p id="comment-filter-error" style="font-size:11px;color:var(--red);min-height:14px;margin:4px 0 0;"></p>
+          </div>
+          <div id="comments-list"></div>
+        </div>
+
+      </div><!-- /kf-info-card -->
+
+      <!-- Spotify Playlist Embed -->
+      <div class="spotify-embed-wrap kf-spotify">
+        <p class="section-label">THE PLAYLIST</p>
+        <iframe
+          src="https://open.spotify.com/embed/playlist/4mZFXJ8NgaKQ01SxZBdAAX?utm_source=generator&theme=0"
+          width="100%"
+          height="352"
+          frameBorder="0"
+          allowfullscreen=""
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"
+          style="border-radius:12px;">
+        </iframe>
       </div>
-      <div class="community-rating" id="community-rating"></div>
-    </div>
 
-    <!-- Pick service -->
-    <div id="view-pick">
-      <p class="picker-label">Where do you listen?</p>
-      <div class="service-grid">
+    </div><!-- /kf-right -->
 
-        <button class="service-btn" onclick="pickService('apple')">
-          <img src="logo-apple-music.svg" alt="Apple Music">
-          <span>Apple Music</span>
-        </button>
-
-        <button class="service-btn" onclick="pickService('spotify')">
-          <img src="logo-spotify.svg" alt="Spotify">
-          <span>Spotify</span>
-        </button>
-
-        <button class="service-btn" onclick="pickService('youtube')">
-          <img src="logo-youtube-music.svg" alt="YouTube Music">
-          <span>YouTube Music</span>
-        </button>
-
-      </div>
-    </div>
-
-    <!-- Listen on service -->
-    <div id="view-listen">
-      <a id="listen-link" class="listen-btn" target="_blank" rel="noopener">
-        <svg class="btn-icon" id="btn-icon" viewBox="0 0 24 24" fill="currentColor"></svg>
-        <span id="btn-label">Listen Now</span>
-      </a>
-      <div class="change-service">
-        <button onclick="resetService()">Change streaming service</button>
-      </div>
-    </div>
-
-  </div><!-- /album-card -->
-
-  <!-- Spotify Playlist Embed -->
-  <div class="spotify-embed-wrap">
-    <p class="section-label">THE PLAYLIST</p>
-    <iframe
-      src="https://open.spotify.com/embed/playlist/4mZFXJ8NgaKQ01SxZBdAAX?utm_source=generator&theme=0"
-      width="100%"
-      height="352"
-      frameBorder="0"
-      allowfullscreen=""
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-      loading="lazy"
-      style="border-radius:12px;">
-    </iframe>
-  </div>
-
-  <!-- Community Metrics -->
-  <div class="metrics-wrap" id="metrics-wrap">
-    <p class="section-label">COMMUNITY PULSE</p>
-    <div class="metrics-grid" id="metrics-grid">
-      <!-- populated by JS -->
-    </div>
-  </div>
-
-  <!-- Comments -->
-  <div class="comments-wrap" id="comments-wrap">
-    <p class="section-label">THE PIT TALK</p>
-    <div id="comment-input-area">
-      <textarea id="comment-input" placeholder="Say something about today's album..." maxlength="280" rows="3"></textarea>
-      <div class="comment-input-footer">
-        <span id="comment-char-count">280</span>
-        <button id="comment-submit-btn" onclick="submitComment()">Post</button>
-      </div>
-      <p id="comment-filter-error" style="font-size:11px;color:var(--red);min-height:14px;margin:4px 0 0;"></p>
-    </div>
-    <div id="comments-list"></div>
-  </div>
+  </div><!-- /kf-grid -->
 
   <div class="killing-archive-wrap">
     <p class="section-label">THE ARCHIVE</p>
