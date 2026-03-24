@@ -1096,36 +1096,36 @@
         margin-bottom: 12px;
       }
 
-      /* ── Right column: info → rating → metrics → comments → spotify ── */
+      /* ── Right column: scrolls internally if content taller than viewport ── */
       .kf-right {
         display: flex;
         flex-direction: column;
         min-height: 0;
         gap: 12px;
-        overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(176,16,16,0.4) transparent;
       }
+      .kf-right::-webkit-scrollbar { width: 4px; }
+      .kf-right::-webkit-scrollbar-track { background: transparent; }
+      .kf-right::-webkit-scrollbar-thumb { background: rgba(176,16,16,0.4); border-radius: 4px; }
+
       .kf-info-card {
-        flex: 1;
-        min-height: 0;
+        flex-shrink: 0;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
       }
-      .kf-info-card .metrics-wrap { flex-shrink: 0; margin-top: 8px; }
+      .kf-info-card .metrics-wrap { margin-top: 8px; }
       .kf-info-card .comments-wrap {
-        flex: 1;
-        min-height: 0;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
         margin-top: 8px;
       }
       #comments-list {
-        flex: 1;
-        min-height: 0;
         overflow-y: auto;
+        max-height: 180px;
         padding-right: 4px;
-        max-height: unset;
       }
       #comments-list::-webkit-scrollbar { width: 4px; }
       #comments-list::-webkit-scrollbar-track { background: transparent; }
