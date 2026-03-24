@@ -1033,6 +1033,9 @@
       html { height: 100%; overflow: hidden; }
       body { height: 100%; min-height: unset; overflow: hidden; display: flex; flex-direction: column; }
 
+      /* Shrink header on desktop — give album art the space it deserves */
+      .header-logo { width: min(280px, 26vw); }
+
       /* Move tab nav to the bottom — frees max vertical space for content */
       .site-header { order: 1; flex-shrink: 0; }
       .tab-panel   { order: 2; }
