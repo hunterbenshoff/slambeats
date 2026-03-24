@@ -379,20 +379,19 @@
       margin-bottom: 8px; margin-top: 12px; letter-spacing: 1px; text-transform: uppercase;
     }
     .service-grid {
-      display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
-      margin-bottom: 0;
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      padding: 6px 0 4px;
     }
     .service-btn {
-      background: rgba(14,6,6,0.88);
-      border: 1px solid rgba(139,50,30,0.2);
-      border-radius: 10px; padding: 0;
-      cursor: pointer; display: flex;
-      flex-direction: column; align-items: center; justify-content: center;
-      gap: 0; overflow: hidden; height: 72px;
-      transition: border-color 0.15s, transform 0.15s;
+      background: none; border: none;
+      cursor: pointer; padding: 0;
+      transition: transform 0.15s, opacity 0.15s;
+      opacity: 0.82;
     }
-    .service-btn:hover { border-color: var(--amber); transform: scale(1.03); }
-    .service-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .service-btn:hover { transform: scale(1.18); opacity: 1; }
+    .service-btn img { width: 54px; height: 54px; display: block; border-radius: 12px; }
     .service-btn span { display: none; }
     .change-service { text-align: center; margin-top: 6px; }
     .change-service button {
