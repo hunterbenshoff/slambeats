@@ -210,6 +210,90 @@
     .tab-btn:hover  { color: var(--amber); }
     .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
 
+    /* ── Mobile nav ──────────────────────────────────────────── */
+    .mobile-nav { display: none; }
+    .mobile-menu-bar {
+      position: sticky;
+      top: 0;
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(8,2,4,0.98);
+      backdrop-filter: blur(8px);
+      border-bottom: 2px solid rgba(176,16,16,0.55);
+      padding: 0 16px;
+      height: 46px;
+    }
+    .mobile-active-tab {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--amber);
+    }
+    .hamburger-btn {
+      background: none;
+      border: 1px solid rgba(176,16,16,0.6);
+      color: #f0e6d3;
+      cursor: pointer;
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .hamburger-btn span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #c01818;
+    }
+    .mobile-dropdown {
+      display: none;
+      position: absolute;
+      top: 46px;
+      left: 0; right: 0;
+      background: rgba(8,2,4,0.99);
+      border-bottom: 2px solid rgba(176,16,16,0.55);
+      z-index: 24;
+      flex-direction: column;
+    }
+    .mobile-dropdown.open { display: flex; }
+    .mobile-tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 1px solid rgba(176,16,16,0.2);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 16px 20px;
+      cursor: pointer;
+      text-align: left;
+      transition: color 0.15s, background 0.15s;
+    }
+    .mobile-tab-btn:hover, .mobile-tab-btn.active {
+      color: var(--amber);
+      background: rgba(176,16,16,0.08);
+    }
+
+    /* ── Mobile layout overrides ─────────────────────────────── */
+    @media (max-width: 768px) {
+      .tab-nav { display: none; }
+      .mobile-nav { display: block; position: sticky; top: 0; z-index: 25; }
+
+      .site-header {
+        align-items: center;
+        justify-content: center;
+        min-height: 130px;
+      }
+      .header-logo {
+        width: min(88vw, 420px);
+        margin: 14px auto;
+      }
+    }
+
     /* ── Tab panels ──────────────────────────────────────────── */
     .tab-panel { max-width: 540px; margin: 0 auto; padding: 24px 16px 48px; }
     .tab-panel.hidden { display: none; }
@@ -929,7 +1013,7 @@
   <img src="slambeatsdotkill-logo.png?v=2" alt="slambeats.kill" class="header-logo" id="header-logo">
 </header>
 
-<!-- ── Tab Nav ── -->
+<!-- ── Tab Nav (desktop) ── -->
 <nav class="tab-nav">
   <button class="tab-btn active" id="tab-killing-floor"  onclick="switchTab('killing-floor')">The Killing Floor</button>
   <button class="tab-btn"        id="tab-chosen"      onclick="switchTab('chosen')">The Chosen</button>
@@ -941,6 +1025,23 @@
     <button class="tab-user-btn" id="tab-user-btn" onclick="toggleProfileCard()"></button>
   </div>
 </nav>
+
+<!-- ── Mobile Nav ── -->
+<div class="mobile-nav" id="mobile-nav">
+  <div class="mobile-menu-bar">
+    <span class="mobile-active-tab" id="mobile-active-label">The Killing Floor</span>
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-dropdown" id="mobile-dropdown">
+    <button class="mobile-tab-btn active" onclick="mobileSwitchTab('killing-floor','The Killing Floor')">The Killing Floor</button>
+    <button class="mobile-tab-btn"        onclick="mobileSwitchTab('chosen','The Chosen')">The Chosen</button>
+    <button class="mobile-tab-btn"        onclick="mobileSwitchTab('fresh-blood','Fresh Blood')">Fresh Blood</button>
+    <button class="mobile-tab-btn"        onclick="mobileSwitchTab('crypt','The Crypt')">The Crypt</button>
+    <button class="mobile-tab-btn"        onclick="mobileSwitchTab('pit','The Pit')">The Pit</button>
+  </div>
+</div>
 
 <!-- ── Profile Card Dropdown ── -->
 <div id="profile-card" style="display:none">
@@ -2508,6 +2609,32 @@ function switchTab(name) {
     // close profile card if open
     document.getElementById('profile-card').style.display = 'none';
 }
+
+// ── Mobile hamburger menu ─────────────────────────────────────
+function toggleMobileMenu() {
+    const dropdown = document.getElementById('mobile-dropdown');
+    dropdown.classList.toggle('open');
+}
+
+function mobileSwitchTab(name, label) {
+    // Update active label
+    document.getElementById('mobile-active-label').textContent = label;
+    // Close dropdown
+    document.getElementById('mobile-dropdown').classList.remove('open');
+    // Update active state on mobile buttons
+    document.querySelectorAll('.mobile-tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    // Reuse the existing switchTab logic
+    switchTab(name);
+}
+
+// Close mobile dropdown when tapping outside
+document.addEventListener('click', function(e) {
+    const nav = document.getElementById('mobile-nav');
+    if (nav && !nav.contains(e.target)) {
+        document.getElementById('mobile-dropdown').classList.remove('open');
+    }
+});
 
 let profileCardOpen = false;
 function toggleProfileCard() {
