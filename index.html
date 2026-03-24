@@ -1265,20 +1265,20 @@
         display: flex; flex-direction: column;
       }
 
-      /* Metrics — 2 cols, big cards */
+      /* Metrics — 2 cols, baseline sizes */
       .metrics-wrap .section-label { margin-bottom: 8px; font-size: 10px; }
-      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 0; }
-      .metric-card   { padding: 12px 10px; border-radius: 10px; }
-      .metric-number { font-size: 26px; }
-      .metric-label  { font-size: 9px; margin-top: 3px; letter-spacing: 1.2px; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 0; }
+      .metric-card   { padding: 14px; border-radius: 10px; }
+      .metric-number { font-size: 28px; }
+      .metric-label  { font-size: 10px; margin-top: 4px; letter-spacing: 1.5px; }
 
       /* Rating — right-aligned, stripped-down bar */
       .rating-section   { padding: 8px 0 0; margin-top: 0; background: none; border-top: none; border-radius: 0; }
       .rating-label     { font-size: 10px; margin-bottom: 4px; text-align: right; }
-      .rating-row       { justify-content: flex-end; }
+      .rating-row       { justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
       .star-row         { gap: 4px; }
       .star-btn         { font-size: 40px; }
-      .rating-sublabel  { display: none; }
+      .rating-sublabel  { font-size: 13px; width: 100%; text-align: right; min-height: 18px; }
 
       /* Comments — tight, directly after top row */
       .kf-info-card .comments-wrap { margin-top: 4px; }
