@@ -487,6 +487,19 @@
     .arch-spotify { background: rgba(29,185,84,0.10); color: #1db954; border-color: rgba(29,185,84,0.22); }
     .arch-youtube { background: rgba(255,0,0,0.09);  color: #ff5555; border-color: rgba(255,80,80,0.2); }
 
+    @keyframes pulseHighlight {
+      0%   { box-shadow: 0 0 0 0 rgba(200,60,20,0.7); }
+      70%  { box-shadow: 0 0 0 10px rgba(200,60,20,0); }
+      100% { box-shadow: 0 0 0 0 rgba(200,60,20,0); }
+    }
+
+    /* ── Artwork date label ──────────────────────────────────── */
+    .artwork-date {
+      text-align: center;
+      font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--muted); padding: 6px 0 2px; margin: 0;
+    }
+
     /* ── Spotify embed ───────────────────────────────────────── */
     .spotify-embed-wrap { margin-top: 24px; }
     .section-label {
@@ -1033,9 +1046,9 @@
       html { height: 100%; overflow: hidden; }
       body { height: 100%; min-height: unset; overflow: hidden; display: flex; flex-direction: column; }
 
-      /* Header: centered logo, bigger, banner fills both sides */
+      /* Header: centered logo at full baseline size, banner fills both sides */
       .site-header { flex-shrink: 0; align-items: center; justify-content: center; }
-      .header-logo { width: auto; height: 170px; margin: 0 auto; }
+      .header-logo { width: min(640px, 85vw); height: auto; margin: 0 auto; }
 
       /* Tab nav stays under header (normal flow) */
       .tab-nav { position: sticky; top: 0; }
@@ -1243,44 +1256,16 @@
 
   <div class="kf-grid">
 
-    <!-- ── LEFT COLUMN: Artwork + Streaming ── -->
+    <!-- ── LEFT COLUMN: Pure Artwork (click → streaming) ── -->
     <div class="kf-left">
       <div class="album-card kf-art-card">
 
-        <div class="artwork-wrap">
+        <div class="artwork-wrap" onclick="artworkClick()" title="Click to listen">
           <div class="artwork-placeholder" id="artwork-placeholder">🎵</div>
           <img id="artwork-img" style="display:none" alt="Album artwork">
         </div>
 
-        <!-- Pick service -->
-        <div id="view-pick">
-          <p class="picker-label">Where do you listen?</p>
-          <div class="service-grid">
-            <button class="service-btn" onclick="pickService('apple')">
-              <img src="logo-apple-music.svg" alt="Apple Music">
-              <span>Apple Music</span>
-            </button>
-            <button class="service-btn" onclick="pickService('spotify')">
-              <img src="logo-spotify.svg" alt="Spotify">
-              <span>Spotify</span>
-            </button>
-            <button class="service-btn" onclick="pickService('youtube')">
-              <img src="logo-youtube-music.svg" alt="YouTube Music">
-              <span>YouTube Music</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Listen button -->
-        <div id="view-listen">
-          <a id="listen-link" class="listen-btn" target="_blank" rel="noopener">
-            <svg class="btn-icon" id="btn-icon" viewBox="0 0 24 24" fill="currentColor"></svg>
-            <span id="btn-label">Listen Now</span>
-          </a>
-          <div class="change-service">
-            <button onclick="resetService()">Change streaming service</button>
-          </div>
-        </div>
+        <p class="artwork-date" id="artwork-date"></p>
 
       </div><!-- /kf-art-card -->
     </div><!-- /kf-left -->
@@ -1311,6 +1296,34 @@
             <p class="rating-sublabel" id="rating-sublabel"></p>
           </div>
           <div class="community-rating" id="community-rating"></div>
+        </div>
+
+        <!-- Streaming (grouped with rating) -->
+        <div id="view-pick">
+          <p class="picker-label">Where do you listen?</p>
+          <div class="service-grid">
+            <button class="service-btn" onclick="pickService('apple')">
+              <img src="logo-apple-music.svg" alt="Apple Music">
+              <span>Apple Music</span>
+            </button>
+            <button class="service-btn" onclick="pickService('spotify')">
+              <img src="logo-spotify.svg" alt="Spotify">
+              <span>Spotify</span>
+            </button>
+            <button class="service-btn" onclick="pickService('youtube')">
+              <img src="logo-youtube-music.svg" alt="YouTube Music">
+              <span>YouTube Music</span>
+            </button>
+          </div>
+        </div>
+        <div id="view-listen">
+          <a id="listen-link" class="listen-btn" target="_blank" rel="noopener">
+            <svg class="btn-icon" id="btn-icon" viewBox="0 0 24 24" fill="currentColor"></svg>
+            <span id="btn-label">Listen Now</span>
+          </a>
+          <div class="change-service">
+            <button onclick="resetService()">Change streaming service</button>
+          </div>
         </div>
 
         <!-- Community Metrics -->
@@ -2841,6 +2854,25 @@ document.addEventListener('click', function(e) {
 // ══════════════════════════════════════════════════════════════
 // SERVICE SELECTION
 // ══════════════════════════════════════════════════════════════
+function artworkClick() {
+    const svc = localStorage.getItem('dailyalbum_service');
+    if (svc && SERVICES[svc]) {
+        const link = document.getElementById('listen-link');
+        if (link && link.href && !link.href.endsWith(window.location.pathname)) {
+            window.open(link.href, '_blank', 'noopener');
+        }
+    } else {
+        // No service chosen yet — highlight the picker
+        const picker = document.getElementById('view-pick');
+        if (picker) {
+            picker.style.display = 'block';
+            picker.style.animation = 'none';
+            picker.offsetHeight; // reflow
+            picker.style.animation = 'pulseHighlight 0.6s ease';
+        }
+    }
+}
+
 function pickService(serviceKey) {
     localStorage.setItem('dailyalbum_service', serviceKey);
     // Save service preference to Supabase if logged in
@@ -2880,8 +2912,11 @@ async function init() {
     const today = new Date();
     const [album, artist, year, genre] = getAlbumForDate(today);
 
-    // Header date
-    document.getElementById('date-display').textContent = formatDateHeader(today);
+    // Header date + artwork date
+    const dateStr = formatDateHeader(today);
+    document.getElementById('date-display').textContent = dateStr;
+    const artworkDateEl = document.getElementById('artwork-date');
+    if (artworkDateEl) artworkDateEl.textContent = dateStr;
 
     // Album info
     document.getElementById('album-title').textContent  = album;
