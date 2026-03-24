@@ -1095,9 +1095,10 @@
         min-height: unset;
       }
 
-      /* Artwork card: no chrome, artwork IS the element */
+      /* Artwork card: no chrome, full height, relative for date overlay */
       .kf-art-card {
         flex: 1; min-height: 0;
+        position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1107,14 +1108,26 @@
         box-shadow: none;
         padding: 0;
       }
-      /* Date centered above artwork */
+      /* Date: big overlay ON the artwork, top-centered */
       .artwork-date {
-        flex-shrink: 0;
-        width: 100%;
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        z-index: 5;
+        pointer-events: none;
         text-align: center;
-        padding: 4px 0 6px;
+        font-family: 'Nosifer', cursive;
+        font-size: 15px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: #f0e6d3;
+        text-shadow: 0 0 12px rgba(176,16,16,1), 0 2px 6px rgba(0,0,0,0.95);
+        padding: 18px 16px 28px;
+        background: linear-gradient(to bottom, rgba(5,1,2,0.88) 0%, transparent 100%);
+        margin: 0;
       }
-      /* Artwork: square, fills all available height */
+      /* Hide the tab-nav date — the artwork overlay replaces it */
+      #date-display { display: none; }
+      /* Artwork: fills the full card height */
       .kf-art-card .artwork-wrap {
         flex: 1; min-height: 0;
         width: auto; max-width: 100%;
@@ -1122,6 +1135,7 @@
         border-radius: 12px;
         margin-bottom: 0;
         cursor: pointer;
+        position: relative;
       }
       .kf-art-card .artwork-wrap img { object-fit: cover; }
       .kf-art-card .artwork-wrap .artwork-placeholder { font-size: 120px; }
@@ -1305,11 +1319,10 @@
     <div class="kf-left">
       <div class="album-card kf-art-card">
 
-        <p class="artwork-date" id="artwork-date"></p>
-
         <div class="artwork-wrap" onclick="artworkClick()" title="Click to listen">
           <div class="artwork-placeholder" id="artwork-placeholder">🎵</div>
           <img id="artwork-img" style="display:none" alt="Album artwork">
+          <p class="artwork-date" id="artwork-date"></p>
         </div>
 
       </div><!-- /kf-art-card -->
