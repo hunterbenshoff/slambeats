@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>slambeats.kill — The Crypt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nosifer&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    @font-face { font-family: 'DeardorfDrip'; src: url('fonts/DeardorfDrip.otf') format('opentype'); font-display: swap; }
+    @font-face { font-family: 'Cingire'; src: url('fonts/Cingire.ttf') format('truetype'); font-display: swap; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red: #c01818; --blood: #b01010; --muted: #8a7060;
+      --sub: #c0a890; --card: rgba(28,4,8,0.97);
+      --cborder: rgba(180,20,20,0.45); --amber: #d4a840;
+    }
+    body {
+      background-color: #0a0305;
+      background-image:
+        repeating-linear-gradient(45deg,  rgba(60,5,10,0.18) 0px, rgba(60,5,10,0.18) 2px, transparent 2px, transparent 12px),
+        repeating-linear-gradient(-45deg, rgba(60,5,10,0.18) 0px, rgba(60,5,10,0.18) 2px, transparent 2px, transparent 12px);
+      color: #f0e6d3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      min-height: 100svh;
+    }
+    .site-header {
+      width: 100%; display: flex; flex-direction: column;
+      align-items: flex-start; padding: 0;
+      background: url('banner.gif?v=22') center center / cover no-repeat;
+      border-top: 3px solid #b01010; border-bottom: 3px solid #b01010;
+    }
+    .header-logo { display: block; width: min(640px, 85vw); height: auto; margin: 0; }
+    .tab-nav {
+      position: sticky; top: 0; z-index: 25;
+      display: flex; background: rgba(8,2,4,0.98);
+      backdrop-filter: blur(8px);
+      border-bottom: 2px solid rgba(176,16,16,0.55);
+      padding: 0 8px; overflow-x: auto; scrollbar-width: none;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      background: none; border: none; color: var(--muted);
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; padding: 13px 12px; cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s; white-space: nowrap; flex-shrink: 0;
+    }
+    .tab-btn:hover  { color: var(--amber); }
+    .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+    .tab-right-cluster { margin-left: auto; display: flex; align-items: center; gap: 10px; padding-right: 4px; }
+
+    /* ── Mobile nav ── */
+    .mobile-nav { display: none; }
+    @media (max-width: 768px) {
+      .tab-nav { display: none; }
+      .mobile-nav { display: block; position: sticky; top: 0; z-index: 25; background: rgba(8,2,4,0.98); border-bottom: 2px solid rgba(176,16,16,0.55); }
+      .mobile-menu-bar { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 46px; }
+      .mobile-active-tab { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--amber); }
+      .mobile-menu-toggle { background: none; border: 1px solid rgba(176,16,16,0.5); color: var(--muted); font-size: 18px; width: 32px; height: 32px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+      .mobile-dropdown { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+      .mobile-dropdown.open { max-height: 400px; }
+      .mobile-tab-btn { background: none; border: none; border-bottom: 1px solid rgba(176,16,16,0.2); color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 14px 16px; cursor: pointer; width: 100%; text-align: left; transition: color 0.15s, background 0.15s; }
+      .mobile-tab-btn:hover, .mobile-tab-btn.active { color: var(--amber); background: rgba(176,16,16,0.08); }
+    }
+
+    /* ── Page content ── */
+    .page-content { max-width: 720px; margin: 0 auto; padding: 32px 24px 60px; }
+    .crypt-header { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(180,20,20,0.2); }
+    .crypt-title { font-size: 36px; font-weight: 900; letter-spacing: 2px; color: #f0e6d3; text-transform: uppercase; line-height: 1; margin-bottom: 6px; }
+    .panel-heading { font-size: 12px; color: var(--muted); letter-spacing: 0.5px; }
+    .crypt-empty { text-align: center; padding: 80px 20px; }
+    .crypt-empty-title { font-size: 20px; font-weight: 900; letter-spacing: 3px; color: rgba(180,20,20,0.4); text-transform: uppercase; margin-bottom: 12px; }
+    .crypt-empty-sub { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <img src="slambeatsdotkill-logo.png?v=2" alt="slambeats.kill" class="header-logo">
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn" onclick="window.location.href='index.html'">The Killing Floor</button>
+  <button class="tab-btn" onclick="window.location.href='slamletterr.html'">The SlamLetter</button>
+  <button class="tab-btn active">The Crypt</button>
+  <button class="tab-btn" onclick="window.location.href='store.html'">Store</button>
+  <div class="tab-right-cluster"></div>
+</nav>
+
+<nav class="mobile-nav">
+  <div class="mobile-menu-bar">
+    <span class="mobile-active-tab">The Crypt</span>
+    <button class="mobile-menu-toggle" onclick="this.closest('.mobile-nav').querySelector('.mobile-dropdown').classList.toggle('open')">☰</button>
+  </div>
+  <div class="mobile-dropdown">
+    <button class="mobile-tab-btn" onclick="window.location.href='index.html'">The Killing Floor</button>
+    <button class="mobile-tab-btn" onclick="window.location.href='slamletterr.html'">The SlamLetter</button>
+    <button class="mobile-tab-btn active">The Crypt</button>
+    <button class="mobile-tab-btn" onclick="window.location.href='store.html'">Store</button>
+  </div>
+</nav>
+
+<div class="page-content">
+
+  <div class="crypt-header">
+    <h2 class="crypt-title">THE CRYPT</h2>
+    <p class="panel-heading">Every issue. The permanent record.</p>
+  </div>
+
+  <div id="crypt-issues-list">
+    <div class="crypt-empty">
+      <p class="crypt-empty-title">THE ARCHIVE AWAITS</p>
+      <p class="crypt-empty-sub">Issue 001 drops September 1, 2026. It will live here forever.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

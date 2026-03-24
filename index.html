@@ -1129,18 +1129,18 @@
         overflow: visible;
         /* inherits .album-card background, border, border-radius, padding */
       }
-      /* Date: normal-flow text row at top of card, Nosifer, bloody glow */
+      /* Date: centered below artwork, proportional to panel width */
       .artwork-date {
         width: 100%;
         text-align: center;
         font-family: 'Nosifer', cursive;
-        font-size: 13px;
-        letter-spacing: 3px;
+        font-size: clamp(9px, 0.85vw, 13px);
+        letter-spacing: clamp(2px, 0.2vw, 4px);
         text-transform: uppercase;
         color: #f0e6d3;
         text-shadow: 0 0 14px rgba(176,16,16,1), 0 2px 8px rgba(0,0,0,0.95);
         margin: 0;
-        padding: 0;
+        padding: 4px 0 0;
         line-height: 1.4;
         flex-shrink: 0;
       }
@@ -1286,10 +1286,10 @@
 
 <!-- ── Tab Nav (desktop) ── -->
 <nav class="tab-nav">
-  <button class="tab-btn active" id="tab-killing-floor"  onclick="switchTab('killing-floor')">The Killing Floor</button>
-  <button class="tab-btn"        id="tab-fresh-blood" onclick="switchTab('fresh-blood')">The SlamLetter</button>
-  <button class="tab-btn"        id="tab-crypt"       onclick="switchTab('crypt')">The Crypt</button>
-  <button class="tab-btn"        id="tab-pit"         onclick="switchTab('pit')">Store</button>
+  <button class="tab-btn active"  id="tab-killing-floor">The Killing Floor</button>
+  <button class="tab-btn"  onclick="window.location.href='slamletterr.html'">The SlamLetter</button>
+  <button class="tab-btn"  onclick="window.location.href='crypt.html'">The Crypt</button>
+  <button class="tab-btn"  onclick="window.location.href='store.html'">Store</button>
   <div class="tab-right-cluster">
     <span class="nosifer-text date-text tab-date" id="date-display"></span>
     <button class="tab-user-btn" id="tab-user-btn" onclick="toggleProfileCard()"></button>
@@ -1308,10 +1308,10 @@
     </div>
   </div>
   <div class="mobile-dropdown" id="mobile-dropdown">
-    <button class="mobile-tab-btn active" onclick="mobileSwitchTab('killing-floor','The Killing Floor')">The Killing Floor</button>
-    <button class="mobile-tab-btn"        onclick="mobileSwitchTab('fresh-blood','The SlamLetter')">The SlamLetter</button>
-    <button class="mobile-tab-btn"        onclick="mobileSwitchTab('crypt','The Crypt')">The Crypt</button>
-    <button class="mobile-tab-btn"        onclick="mobileSwitchTab('pit','Store')">Store</button>
+    <button class="mobile-tab-btn active">The Killing Floor</button>
+    <button class="mobile-tab-btn" onclick="window.location.href='slamletterr.html'">The SlamLetter</button>
+    <button class="mobile-tab-btn" onclick="window.location.href='crypt.html'">The Crypt</button>
+    <button class="mobile-tab-btn" onclick="window.location.href='store.html'">Store</button>
   </div>
 </div>
 
@@ -1337,16 +1337,16 @@
 
   <div class="kf-grid">
 
-    <!-- ── RIGHT COLUMN: Full artwork, date above, Spotify below ── -->
+    <!-- ── RIGHT COLUMN: Full artwork, date below ── -->
     <div class="kf-left">
       <div class="album-card kf-art-card">
-
-        <p class="artwork-date" id="artwork-date"></p>
 
         <div class="artwork-wrap" onclick="artworkClick()" title="Click to listen">
           <div class="artwork-placeholder" id="artwork-placeholder">🎵</div>
           <img id="artwork-img" style="display:none" alt="Album artwork">
         </div>
+
+        <p class="artwork-date" id="artwork-date"></p>
 
       </div><!-- /kf-art-card -->
 
