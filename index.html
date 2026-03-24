@@ -385,14 +385,15 @@
     .service-btn {
       background: rgba(14,6,6,0.88);
       border: 1px solid rgba(139,50,30,0.2);
-      border-radius: 10px; padding: 10px 8px;
+      border-radius: 10px; padding: 0;
       cursor: pointer; display: flex;
-      flex-direction: column; align-items: center; gap: 8px;
-      font-size: 11px; color: var(--sub); font-weight: 500;
-      transition: border-color 0.15s, background 0.15s;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 0; overflow: hidden; height: 72px;
+      transition: border-color 0.15s, transform 0.15s;
     }
-    .service-btn:hover { border-color: var(--amber); background: rgba(20,6,6,0.98); }
-    .service-btn svg { width: 30px; height: 30px; }
+    .service-btn:hover { border-color: var(--amber); transform: scale(1.03); }
+    .service-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .service-btn span { display: none; }
     .change-service { text-align: center; margin-top: 6px; }
     .change-service button {
       background: none; border: none; color: var(--muted);
@@ -1121,18 +1122,18 @@
       <div class="service-grid">
 
         <button class="service-btn" onclick="pickService('apple')">
-          <img src="logo-apple-music.svg" width="30" height="30" alt="Apple Music">
-          Apple Music
+          <img src="logo-apple-music.svg" alt="Apple Music">
+          <span>Apple Music</span>
         </button>
 
         <button class="service-btn" onclick="pickService('spotify')">
-          <img src="logo-spotify.svg" width="30" height="30" alt="Spotify">
-          Spotify
+          <img src="logo-spotify.svg" alt="Spotify">
+          <span>Spotify</span>
         </button>
 
         <button class="service-btn" onclick="pickService('youtube')">
-          <img src="logo-youtube-music.svg" width="30" height="30" alt="YouTube Music">
-          YouTube Music
+          <img src="logo-youtube-music.svg" alt="YouTube Music">
+          <span>YouTube Music</span>
         </button>
 
       </div>
