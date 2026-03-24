@@ -393,7 +393,9 @@
     /* ── Skull rating ────────────────────────────────────────── */
     .rating-section {
       border-top: 1px solid rgba(139,50,30,0.2);
-      padding-top: 20px; margin-top: 8px;
+      padding: 16px 20px; margin-top: 8px;
+      background: rgba(60,10,10,0.55);
+      border-radius: 6px;
     }
     .rating-label {
       font-size: 10px; letter-spacing: 3px;
@@ -402,26 +404,15 @@
     }
     .star-row { display: flex; gap: 4px; margin-bottom: 8px; }
     .star-btn {
-      background: rgba(120,0,0,0.15);
-      border: 1px solid rgba(160,0,0,0.3);
-      border-radius: 6px;
-      font-size: 28px; cursor: pointer; padding: 4px 6px; line-height: 1;
-      transition: transform 0.12s, background 0.12s, border-color 0.12s;
+      background: none; border: none;
+      font-size: 30px; color: rgba(200,80,80,0.7);
+      cursor: pointer; padding: 0 3px; line-height: 1;
+      transition: color 0.12s, transform 0.12s;
       font-variant-emoji: text;
-      opacity: 0.55;
     }
-    .star-btn:hover      { transform: scale(1.15); opacity: 1; background: rgba(160,0,0,0.3); border-color: rgba(200,0,0,0.6); }
-    .star-btn.lit        {
-      opacity: 1;
-      background: rgba(160,0,0,0.3);
-      border-color: rgba(200,0,0,0.6);
-    }
-    .star-btn.saved      {
-      opacity: 1;
-      background: rgba(200,0,0,0.4);
-      border-color: rgba(255,40,40,0.9);
-      box-shadow: 0 0 8px rgba(255,0,0,0.5);
-    }
+    .star-btn:hover      { transform: scale(1.2); color: #dd2020; }
+    .star-btn.lit        { color: #cc0000; filter: drop-shadow(0 0 4px rgba(200,0,0,0.6)); }
+    .star-btn.saved      { color: #ff3030; filter: drop-shadow(0 0 8px rgba(255,0,0,0.9)); }
     .rating-sublabel {
       font-size: 11px; color: rgba(200,140,120,0.8); min-height: 16px; letter-spacing: 1px;
     }
