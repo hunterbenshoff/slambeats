@@ -36,7 +36,7 @@
         repeating-linear-gradient(-45deg, rgba(60,5,10,0.18) 0px, rgba(60,5,10,0.18) 2px, transparent 2px, transparent 12px);
       color: #f0e6d3;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      min-height: 100vh;
+      min-height: 100svh;
       padding-top: 0;
     }
 
@@ -1026,37 +1026,108 @@
       padding: 0 12px 12px;
     }
 
-    /* ── Killing Floor: desktop two-column layout ─────────── */
+    /* ══ DESKTOP: zero-scroll full-viewport layout ══════════ */
     @media (min-width: 769px) {
+
+      /* Lock the page to viewport height — no outer scroll */
+      html, body { height: 100%; overflow: hidden; }
+      body { display: flex; flex-direction: column; }
+      .site-header { flex-shrink: 0; }
+      .tab-nav     { flex-shrink: 0; }
+
+      /* All panels fill remaining height; non-KF panels scroll internally */
+      .tab-panel {
+        flex: 1;
+        min-height: 0;
+        max-width: 1240px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 14px 24px 14px;
+        overflow-y: auto;
+      }
+
+      /* KF panel: no outer scroll, flex column */
       #panel-killing-floor {
-        max-width: 1100px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
+
+      /* Two-column grid fills the panel */
       .kf-grid {
+        flex: 1;
+        min-height: 0;
         display: grid;
-        grid-template-columns: 420px 1fr;
-        gap: 24px;
-        align-items: start;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        overflow: hidden;
       }
+
+      /* ── Left column: artwork expands to fill ── */
       .kf-left {
-        position: sticky;
-        top: 20px;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+        position: static;
+      }
+      .kf-art-card {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
       .kf-art-card .artwork-wrap {
-        margin-bottom: 14px;
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        aspect-ratio: unset;
+        margin-bottom: 12px;
       }
-      /* Compact spotify on desktop */
-      .kf-spotify iframe {
-        height: 152px !important;
+
+      /* ── Right column: info → rating → metrics → comments → spotify ── */
+      .kf-right {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        gap: 12px;
+        overflow: hidden;
       }
-      /* Scrollable comments list on desktop */
+      .kf-info-card {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .kf-info-card .metrics-wrap { flex-shrink: 0; margin-top: 8px; }
+      .kf-info-card .comments-wrap {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        margin-top: 8px;
+      }
       #comments-list {
-        max-height: 260px;
+        flex: 1;
+        min-height: 0;
         overflow-y: auto;
         padding-right: 4px;
+        max-height: unset;
       }
       #comments-list::-webkit-scrollbar { width: 4px; }
       #comments-list::-webkit-scrollbar-track { background: transparent; }
       #comments-list::-webkit-scrollbar-thumb { background: rgba(176,16,16,0.35); border-radius: 4px; }
+
+      /* Spotify compact embed */
+      .kf-spotify { flex-shrink: 0; margin-top: 0; }
+      .kf-spotify iframe { height: 152px !important; }
+
+      /* Hide archive + newsletter on desktop — not needed above the fold */
+      .killing-archive-wrap,
+      #panel-killing-floor .newsletter-bar { display: none; }
     }
 
   </style>
@@ -1072,7 +1143,7 @@
 <nav class="tab-nav">
   <button class="tab-btn active" id="tab-killing-floor"  onclick="switchTab('killing-floor')">The Killing Floor</button>
   <button class="tab-btn"        id="tab-chosen"      onclick="switchTab('chosen')">The Chosen</button>
-  <button class="tab-btn"        id="tab-fresh-blood" onclick="switchTab('fresh-blood')">Fresh Blood</button>
+  <button class="tab-btn"        id="tab-fresh-blood" onclick="switchTab('fresh-blood')">The SlamLetter</button>
   <button class="tab-btn"        id="tab-crypt"       onclick="switchTab('crypt')">The Crypt</button>
   <button class="tab-btn"        id="tab-pit"         onclick="switchTab('pit')">The Pit</button>
   <div class="tab-right-cluster">
@@ -1095,7 +1166,7 @@
   <div class="mobile-dropdown" id="mobile-dropdown">
     <button class="mobile-tab-btn active" onclick="mobileSwitchTab('killing-floor','The Killing Floor')">The Killing Floor</button>
     <button class="mobile-tab-btn"        onclick="mobileSwitchTab('chosen','The Chosen')">The Chosen</button>
-    <button class="mobile-tab-btn"        onclick="mobileSwitchTab('fresh-blood','Fresh Blood')">Fresh Blood</button>
+    <button class="mobile-tab-btn"        onclick="mobileSwitchTab('fresh-blood','The SlamLetter')">The SlamLetter</button>
     <button class="mobile-tab-btn"        onclick="mobileSwitchTab('crypt','The Crypt')">The Crypt</button>
     <button class="mobile-tab-btn"        onclick="mobileSwitchTab('pit','The Pit')">The Pit</button>
   </div>
@@ -1291,7 +1362,7 @@
 <div class="tab-panel hidden" id="panel-fresh-blood">
 
   <div class="issues-header">
-    <h2 class="issues-title">FRESH BLOOD</h2>
+    <h2 class="issues-title">THE SLAMLETTER</h2>
     <p class="issues-sub">New issues. When they drop, they live here first.</p>
   </div>
 
