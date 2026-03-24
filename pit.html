@@ -272,6 +272,26 @@
     }
     .modal-btn:hover { background: #cc1515; }
 
+    /* ── Day tab switcher ── */
+    .pit-day-tabs {
+      display: flex; gap: 6px; margin-bottom: 12px; flex-shrink: 0;
+    }
+    .pit-day-tab {
+      flex: 1; background: none;
+      border: 1px solid rgba(176,16,16,0.25);
+      color: var(--muted); font-size: 9px; letter-spacing: 1.5px;
+      text-transform: uppercase; font-weight: 700;
+      padding: 7px 4px; border-radius: 6px;
+      cursor: pointer; transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .pit-day-tab:hover { color: var(--text); border-color: rgba(176,16,16,0.5); }
+    .pit-day-tab.active {
+      background: rgba(176,16,16,0.15);
+      border-color: rgba(176,16,16,0.6);
+      color: var(--text);
+    }
+
     /* Mobile adjustments */
     @media (max-width: 600px) {
       .pit-album { width: 100%; border-right: none; border-bottom: 1px solid var(--cborder); padding: 14px; flex-shrink: 0; }
@@ -304,6 +324,11 @@
 
     <!-- Album info sidebar -->
     <div class="pit-album">
+      <div class="pit-day-tabs">
+        <button class="pit-day-tab active" onclick="switchDay(0)" id="tab-0">TODAY</button>
+        <button class="pit-day-tab" onclick="switchDay(1)" id="tab-1">YESTERDAY</button>
+        <button class="pit-day-tab" onclick="switchDay(2)" id="tab-2">2 DAYS AGO</button>
+      </div>
       <div class="pit-album-box">
         <p class="pit-date-label" id="pit-date"></p>
         <div class="pit-artwork-wrap" id="pit-art-wrap">
@@ -319,8 +344,7 @@
           </div>
         </div>
         <p class="pit-lifetime-note">
-          Comments live for <span>48 hours</span> from posting.<br>
-          Ratings are permanent — tied to your profile.
+          Comments live for <span>48 hours</span> from posting.
         </p>
       </div>
     </div>
@@ -365,6 +389,264 @@
 </div>
 
 <script>
+// ── Album list ───────────────────────────────────────────────────
+const ALBUMS = [
+    ["Black Sabbath", "Black Sabbath", 1970, "Classic Metal"],
+    ["Paranoid", "Black Sabbath", 1970, "Classic Metal"],
+    ["Master of Reality", "Black Sabbath", 1971, "Classic Metal"],
+    ["Sabbath Bloody Sabbath", "Black Sabbath", 1973, "Classic Metal"],
+    ["Heaven and Hell", "Black Sabbath", 1980, "Classic Metal"],
+    ["Mob Rules", "Black Sabbath", 1981, "Classic Metal"],
+    ["British Steel", "Judas Priest", 1980, "Classic Metal"],
+    ["Screaming for Vengeance", "Judas Priest", 1982, "Classic Metal"],
+    ["Defenders of the Faith", "Judas Priest", 1984, "Classic Metal"],
+    ["Painkiller", "Judas Priest", 1990, "Classic Metal"],
+    ["Sad Wings of Destiny", "Judas Priest", 1976, "Classic Metal"],
+    ["The Number of the Beast", "Iron Maiden", 1982, "Classic Metal"],
+    ["Piece of Mind", "Iron Maiden", 1983, "Classic Metal"],
+    ["Powerslave", "Iron Maiden", 1984, "Classic Metal"],
+    ["Somewhere in Time", "Iron Maiden", 1986, "Classic Metal"],
+    ["Seventh Son of a Seventh Son", "Iron Maiden", 1988, "Classic Metal"],
+    ["Killers", "Iron Maiden", 1981, "Classic Metal"],
+    ["Rising", "Rainbow", 1976, "Classic Metal"],
+    ["Long Live Rock 'n' Roll", "Rainbow", 1978, "Classic Metal"],
+    ["Holy Diver", "Dio", 1983, "Classic Metal"],
+    ["The Last in Line", "Dio", 1984, "Classic Metal"],
+    ["Ace of Spades", "Motorhead", 1980, "Classic Metal"],
+    ["Overkill", "Motorhead", 1979, "Classic Metal"],
+    ["Bomber", "Motorhead", 1979, "Classic Metal"],
+    ["No Sleep 'til Hammersmith", "Motorhead", 1981, "Classic Metal"],
+    ["Wheels of Steel", "Saxon", 1980, "Classic Metal"],
+    ["Strong Arm of the Law", "Saxon", 1980, "Classic Metal"],
+    ["Melissa", "Mercyful Fate", 1983, "Classic Metal"],
+    ["Don't Break the Oath", "Mercyful Fate", 1984, "Classic Metal"],
+    ["Kill 'Em All", "Metallica", 1983, "Thrash Metal"],
+    ["Ride the Lightning", "Metallica", 1984, "Thrash Metal"],
+    ["Master of Puppets", "Metallica", 1986, "Thrash Metal"],
+    ["...And Justice for All", "Metallica", 1988, "Thrash Metal"],
+    ["Metallica (Black Album)", "Metallica", 1991, "Thrash Metal"],
+    ["Peace Sells... but Who's Buying?", "Megadeth", 1986, "Thrash Metal"],
+    ["Rust in Peace", "Megadeth", 1990, "Thrash Metal"],
+    ["Killing Is My Business...", "Megadeth", 1985, "Thrash Metal"],
+    ["Countdown to Extinction", "Megadeth", 1992, "Thrash Metal"],
+    ["South of Heaven", "Slayer", 1988, "Thrash Metal"],
+    ["Reign in Blood", "Slayer", 1986, "Thrash Metal"],
+    ["Seasons in the Abyss", "Slayer", 1990, "Thrash Metal"],
+    ["Hell Awaits", "Slayer", 1985, "Thrash Metal"],
+    ["Show No Mercy", "Slayer", 1983, "Thrash Metal"],
+    ["Spreading the Disease", "Anthrax", 1985, "Thrash Metal"],
+    ["Among the Living", "Anthrax", 1987, "Thrash Metal"],
+    ["Persistence of Time", "Anthrax", 1990, "Thrash Metal"],
+    ["Fistful of Metal", "Anthrax", 1984, "Thrash Metal"],
+    ["Bonded by Blood", "Exodus", 1985, "Thrash Metal"],
+    ["Fabulous Disaster", "Exodus", 1989, "Thrash Metal"],
+    ["The Legacy", "Testament", 1987, "Thrash Metal"],
+    ["Practice What You Preach", "Testament", 1989, "Thrash Metal"],
+    ["The New Order", "Testament", 1988, "Thrash Metal"],
+    ["Souls of Black", "Testament", 1990, "Thrash Metal"],
+    ["Feel the Fire", "Overkill", 1985, "Thrash Metal"],
+    ["Taking Over", "Overkill", 1987, "Thrash Metal"],
+    ["The Years of Decay", "Overkill", 1989, "Thrash Metal"],
+    ["Horrorscope", "Overkill", 1991, "Thrash Metal"],
+    ["Darkness Descends", "Dark Angel", 1986, "Thrash Metal"],
+    ["Eternal Nightmare", "Vio-Lence", 1988, "Thrash Metal"],
+    ["World Downfall", "Terrorizer", 1989, "Thrash/Death Metal"],
+    ["Beneath the Remains", "Sepultura", 1989, "Thrash Metal"],
+    ["Arise", "Sepultura", 1991, "Thrash Metal"],
+    ["Chaos A.D.", "Sepultura", 1993, "Thrash Metal"],
+    ["Roots", "Sepultura", 1996, "Groove Metal"],
+    ["Schizophrenia", "Sepultura", 1987, "Thrash Metal"],
+    ["Torture", "Kreator", 2012, "Thrash Metal"],
+    ["Pleasure to Kill", "Kreator", 1986, "Thrash Metal"],
+    ["Coma of Souls", "Kreator", 1990, "Thrash Metal"],
+    ["Terrible Certainty", "Kreator", 1987, "Thrash Metal"],
+    ["Obsessed by Cruelty", "Sodom", 1986, "Thrash/Black Metal"],
+    ["Agent Orange", "Sodom", 1989, "Thrash Metal"],
+    ["Persecution Mania", "Sodom", 1987, "Thrash Metal"],
+    ["Eternal Devastation", "Destruction", 1986, "Thrash Metal"],
+    ["Release from Agony", "Destruction", 1988, "Thrash Metal"],
+    ["D.R.I. 4 of a Kind", "D.R.I.", 1988, "Crossover Thrash"],
+    ["Dealing with It!", "D.R.I.", 1985, "Crossover Thrash"],
+    ["Metal Up Your Ass", "Suicidal Tendencies", 1983, "Crossover Thrash"],
+    ["Join the Army", "Suicidal Tendencies", 1987, "Crossover Thrash"],
+    ["How Will I Laugh Tomorrow When I Can't Even Smile Today", "Suicidal Tendencies", 1988, "Thrash Metal"],
+    ["Infectious Grooves", "Infectious Grooves", 1991, "Funk Metal"],
+    ["Speak English or Die", "S.O.D.", 1985, "Crossover Thrash"],
+    ["The Ultra-Violence", "Death Angel", 1987, "Thrash Metal"],
+    ["Frolic Through the Park", "Death Angel", 1988, "Thrash Metal"],
+    ["We Have Arrived", "Heathen", 1988, "Thrash Metal"],
+    ["Victims of Deception", "Heathen", 1991, "Thrash Metal"],
+    ["Control and Resistance", "Watchtower", 1989, "Technical Thrash"],
+    ["Scream Bloody Gore", "Death", 1987, "Death Metal"],
+    ["Leprosy", "Death", 1988, "Death Metal"],
+    ["Spiritual Healing", "Death", 1990, "Death Metal"],
+    ["Human", "Death", 1991, "Death Metal"],
+    ["Individual Thought Patterns", "Death", 1993, "Death Metal"],
+    ["Symbolic", "Death", 1995, "Death Metal"],
+    ["The Sound of Perseverance", "Death", 1998, "Death Metal"],
+    ["Altars of Madness", "Morbid Angel", 1989, "Death Metal"],
+    ["Blessed Are the Sick", "Morbid Angel", 1991, "Death Metal"],
+    ["Covenant", "Morbid Angel", 1993, "Death Metal"],
+    ["Domination", "Morbid Angel", 1995, "Death Metal"],
+    ["Formulas Fatal to the Flesh", "Morbid Angel", 1998, "Death Metal"],
+    ["Slowly We Rot", "Obituary", 1989, "Death Metal"],
+    ["Cause of Death", "Obituary", 1990, "Death Metal"],
+    ["The End Complete", "Obituary", 1992, "Death Metal"],
+    ["Left Hand Path", "Entombed", 1990, "Death Metal"],
+    ["Clandestine", "Entombed", 1991, "Death Metal"],
+    ["Wolverine Blues", "Entombed", 1993, "Death 'n' Roll"],
+    ["Like an Everflowing Stream", "Dismember", 1991, "Death Metal"],
+    ["Indecent & Obscene", "Dismember", 1993, "Death Metal"],
+    ["Dark Recollections", "Carnage", 1990, "Death Metal"],
+    ["The Rack", "Asphyx", 1991, "Death Metal"],
+    ["Consuming Impulse", "Pestilence", 1989, "Death Metal"],
+    ["Testimony of the Ancients", "Pestilence", 1991, "Death Metal"],
+    ["Effigy of the Forgotten", "Suffocation", 1991, "Brutal Death Metal"],
+    ["Breeding the Spawn", "Suffocation", 1993, "Brutal Death Metal"],
+    ["Pierced from Within", "Suffocation", 1995, "Brutal Death Metal"],
+    ["None So Vile", "Cryptopsy", 1996, "Brutal Death Metal"],
+    ["And Then You'll Beg", "Cryptopsy", 2000, "Technical Death Metal"],
+    ["Nespithe", "Demilich", 1993, "Technical Death Metal"],
+    ["Unquestionable Presence", "Atheist", 1991, "Technical Death Metal"],
+    ["Piece of Time", "Atheist", 1990, "Technical Death Metal"],
+    ["Spheres", "Atheist", 1993, "Technical Death Metal"],
+    ["Focus", "Cynic", 1993, "Technical Death Metal"],
+    ["Path of Totality", "Cynic", 2010, "Progressive Metal"],
+    ["The Red in the Sky Is Ours", "At the Gates", 1992, "Melodic Death Metal"],
+    ["With Fear I Kiss the Burning Darkness", "At the Gates", 1993, "Melodic Death Metal"],
+    ["Terminal Spirit Disease", "At the Gates", 1994, "Melodic Death Metal"],
+    ["Slaughter of the Soul", "At the Gates", 1995, "Melodic Death Metal"],
+    ["The Gallery", "Dark Tranquillity", 1995, "Melodic Death Metal"],
+    ["Projector", "Dark Tranquillity", 1999, "Melodic Death Metal"],
+    ["The Mind's I", "Dark Tranquillity", 1997, "Melodic Death Metal"],
+    ["The Jester Race", "In Flames", 1996, "Melodic Death Metal"],
+    ["Whoracle", "In Flames", 1997, "Melodic Death Metal"],
+    ["Colony", "In Flames", 1999, "Melodic Death Metal"],
+    ["Clayman", "In Flames", 2000, "Melodic Death Metal"],
+    ["Morningrise", "Opeth", 1996, "Progressive Death Metal"],
+    ["My Arms, Your Hearse", "Opeth", 1998, "Progressive Death Metal"],
+    ["Still Life", "Opeth", 1999, "Progressive Death Metal"],
+    ["Blackwater Park", "Opeth", 2001, "Progressive Death Metal"],
+    ["Deliverance", "Opeth", 2002, "Progressive Death Metal"],
+    ["Damage Done", "Dark Tranquillity", 2002, "Melodic Death Metal"],
+    ["Wages of Sin", "Arch Enemy", 2001, "Melodic Death Metal"],
+    ["Anthems of Rebellion", "Arch Enemy", 2003, "Melodic Death Metal"],
+    ["Heartwork", "Carcass", 1993, "Melodic Death Metal"],
+    ["Necroticism", "Carcass", 1991, "Death Metal"],
+    ["Harmony Corruption", "Napalm Death", 1990, "Death Metal"],
+    ["Utopia Banished", "Napalm Death", 1992, "Death Metal"],
+    ["Scum", "Napalm Death", 1987, "Grindcore"],
+    ["Severed Survival", "Autopsy", 1989, "Death Metal"],
+    ["Mental Funeral", "Autopsy", 1991, "Death Metal"],
+    ["Last One on Earth", "Asphyx", 1992, "Death/Doom Metal"],
+    ["Legion", "Deicide", 1992, "Death Metal"],
+    ["Deicide", "Deicide", 1990, "Death Metal"],
+    ["Tomb of the Mutilated", "Cannibal Corpse", 1992, "Death Metal"],
+    ["Bleeding", "Cannibal Corpse", 1994, "Death Metal"],
+    ["Kill", "Cannibal Corpse", 2006, "Death Metal"],
+    ["Violence Unimagined", "Cannibal Corpse", 2021, "Death Metal"],
+    ["De Mysteriis Dom Sathanas", "Mayhem", 1994, "Black Metal"],
+    ["Transilvanian Hunger", "Darkthrone", 1994, "Black Metal"],
+    ["A Blaze in the Northern Sky", "Darkthrone", 1992, "Black Metal"],
+    ["Under a Funeral Moon", "Darkthrone", 1993, "Black Metal"],
+    ["Panzerfaust", "Darkthrone", 1995, "Black Metal"],
+    ["Filosofem", "Burzum", 1996, "Black Metal"],
+    ["Hvis Lyset Tar Oss", "Burzum", 1994, "Black Metal"],
+    ["In the Nightside Eclipse", "Emperor", 1994, "Symphonic Black Metal"],
+    ["Anthems to the Welkin at Dusk", "Emperor", 1997, "Symphonic Black Metal"],
+    ["IX Equilibrium", "Emperor", 1999, "Black Metal"],
+    ["Pure Holocaust", "Immortal", 1993, "Black Metal"],
+    ["Battles in the North", "Immortal", 1995, "Black Metal"],
+    ["At the Heart of Winter", "Immortal", 1999, "Black Metal"],
+    ["Sons of Northern Darkness", "Immortal", 2002, "Black Metal"],
+    ["Black Metal", "Venom", 1982, "Proto-Black Metal"],
+    ["Welcome to Hell", "Venom", 1981, "Proto-Black Metal"],
+    ["Under the Sign of the Black Mark", "Bathory", 1987, "Black Metal"],
+    ["Blood Fire Death", "Bathory", 1988, "Black/Viking Metal"],
+    ["Hammerheart", "Bathory", 1990, "Viking Metal"],
+    ["Nemesis Divina", "Satyricon", 1996, "Black Metal"],
+    ["Epicus Doomicus Metallicus", "Candlemass", 1986, "Doom Metal"],
+    ["Nightfall", "Candlemass", 1987, "Doom Metal"],
+    ["Born Too Late", "Saint Vitus", 1986, "Doom Metal"],
+    ["Dopethrone", "Electric Wizard", 2000, "Stoner/Doom Metal"],
+    ["Come My Fanatics", "Electric Wizard", 1997, "Stoner/Doom Metal"],
+    ["Sleep's Holy Mountain", "Sleep", 1992, "Stoner/Doom Metal"],
+    ["Dopesmoker", "Sleep", 2012, "Stoner/Doom Metal"],
+    ["Surrounded by Thieves", "High on Fire", 2002, "Stoner Metal"],
+    ["Blessed Black Wings", "High on Fire", 2005, "Sludge Metal"],
+    ["Death Is This Communion", "High on Fire", 2007, "Sludge Metal"],
+    ["Take as Needed for Pain", "Eyehategod", 1993, "Sludge Metal"],
+    ["Dopesick", "Eyehategod", 1996, "Sludge Metal"],
+    ["Crowbar", "Crowbar", 1993, "Sludge Metal"],
+    ["Down NOLA", "Down", 1995, "Sludge Metal"],
+    ["Neurosis Times of Grace", "Neurosis", 1999, "Post-Metal"],
+    ["Through Silver in Blood", "Neurosis", 1996, "Sludge/Post-Metal"],
+    ["Converge Jane Doe", "Converge", 2001, "Metalcore/Hardcore"],
+    ["No Heroes", "Converge", 2006, "Metalcore"],
+    ["Damaged", "Black Flag", 1981, "Hardcore Punk"],
+    ["My War", "Black Flag", 1984, "Hardcore Punk"],
+    ["Fresh Fruit for Rotting Vegetables", "Dead Kennedys", 1980, "Hardcore Punk"],
+    ["Minor Threat Out of Step", "Minor Threat", 1983, "Hardcore Punk"],
+    ["Victim in Pain", "Agnostic Front", 1984, "Hardcore Punk"],
+    ["The Age of Quarrel", "Cro-Mags", 1986, "Hardcore Punk"],
+    ["Hear Nothing See Nothing Say Nothing", "Discharge", 1982, "Hardcore Punk"],
+    ["Break Down the Walls", "Youth of Today", 1986, "Hardcore Punk"],
+    ["Start Today", "Gorilla Biscuits", 1989, "Hardcore Punk"],
+    ["Blood, Sweat and No Tears", "Sick of It All", 1992, "Hardcore Punk"],
+    ["Bad Brains", "Bad Brains", 1982, "Hardcore Punk"],
+    ["I Against I", "Bad Brains", 1986, "Hardcore Punk"],
+    ["Suffer", "Bad Religion", 1988, "Punk Rock"],
+    ["No Control", "Bad Religion", 1989, "Punk Rock"],
+    ["Satisfaction Is the Death of Desire", "Hatebreed", 1997, "Metalcore/Hardcore"],
+    ["One with the Underdogs", "Terror", 2004, "Hardcore Punk"],
+    ["Always the Hard Way", "Terror", 2006, "Hardcore Punk"],
+    ["Keepers of the Faith", "Terror", 2010, "Hardcore Punk"],
+];
+
+function dateHash(str) {
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) + hash + str.charCodeAt(i)) >>> 0;
+    }
+    hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b) >>> 0;
+    hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b) >>> 0;
+    return (hash ^ (hash >>> 16)) >>> 0;
+}
+
+function seededShuffle(length, seed) {
+    const a = Array.from({ length }, (_, i) => i);
+    let s = seed;
+    for (let i = length - 1; i > 0; i--) {
+        s = Math.imul(s ^ (s >>> 15), s | 1);
+        s ^= s + Math.imul(s ^ (s >>> 7), s | 61);
+        s = ((s ^ (s >>> 14)) >>> 0);
+        const j = s % (i + 1);
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function getAlbumForDate(d) {
+    const year  = d.getFullYear();
+    const order = seededShuffle(ALBUMS.length, dateHash(String(year)));
+    const start = new Date(year, 0, 1);
+    const day   = Math.floor((d - start) / 86400000);
+    let pos = day % order.length;
+    if (day > 0) {
+        const prevPos = (day - 1) % order.length;
+        if (ALBUMS[order[pos]][1] === ALBUMS[order[prevPos]][1]) {
+            pos = (pos + 1) % order.length;
+        }
+    }
+    return ALBUMS[order[pos]];
+}
+
+function dateKeyForOffset(offset) {
+    const d = new Date();
+    d.setDate(d.getDate() - offset);
+    return d.toISOString().slice(0, 10);
+}
+
 // ── Config ──────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://mfauodrizkxxsvdpuyzq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYXVvZHJpemt4eHN2ZHB1eXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjU3MTAsImV4cCI6MjA4ODY0MTcxMH0.WlWIc6X5Hggth8JmnqXJPv2KkF6hgYRQWeBOBmdvITs';
@@ -374,13 +656,8 @@ const SB_HEADERS = {
     'Content-Type': 'application/json'
 };
 
-// ── Read URL params ──────────────────────────────────────────────
-const params  = new URLSearchParams(window.location.search);
-const ALBUM   = params.get('album')  || '';
-const ARTIST  = params.get('artist') || '';
-const YEAR    = params.get('year')   || '';
-const GENRE   = params.get('genre')  || '';
-const DATE_KEY = params.get('date') || new Date().toISOString().slice(0, 10);
+// ── Active day state (updated by switchDay) ──────────────────────
+let currentDateKey = new Date().toISOString().slice(0, 10);
 
 // ── Helpers ──────────────────────────────────────────────────────
 function getUserId() {
@@ -469,7 +746,7 @@ let pollTimer = null;
 async function loadMessages() {
     try {
         const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/comments?select=id,user_id,comment,created_at&album_date=eq.${DATE_KEY}&order=created_at.asc`,
+            `${SUPABASE_URL}/rest/v1/comments?select=id,user_id,comment,created_at&album_date=eq.${currentDateKey}&order=created_at.asc`,
             { headers: SB_HEADERS }
         );
         const data = await res.json();
@@ -558,7 +835,7 @@ async function pitSubmit() {
         await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
             method: 'POST',
             headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
-            body: JSON.stringify({ user_id: getUserId(), album_date: DATE_KEY, comment: text })
+            body: JSON.stringify({ user_id: getUserId(), album_date: currentDateKey, comment: text })
         });
         ta.value = '';
         document.getElementById('pit-char').textContent = '280';
@@ -600,43 +877,79 @@ async function pitSaveHandle() {
     } catch(e) { errEl.textContent = 'Error. Try again.'; }
 }
 
-// ── Init ──────────────────────────────────────────────────────────
-async function pitInit() {
-    // Populate album info
+// ── Day switcher ──────────────────────────────────────────────────
+async function switchDay(offset) {
+    // Update tab highlights
+    [0, 1, 2].forEach(i => {
+        const t = document.getElementById('tab-' + i);
+        if (t) t.classList.toggle('active', i === offset);
+    });
+
+    // Compute date and album for this offset
+    const d = new Date();
+    d.setDate(d.getDate() - offset);
+    currentDateKey = d.toISOString().slice(0, 10);
+    const album = getAlbumForDate(d);
+    const albumTitle  = album[0];
+    const albumArtist = album[1];
+    const albumYear   = album[2];
+    const albumGenre  = album[3];
+
+    // Update sidebar date label
     const dateEl = document.getElementById('pit-date');
-    if (DATE_KEY) {
-        const d = new Date(DATE_KEY + 'T12:00:00');
-        dateEl.textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase();
-    }
-    document.getElementById('pit-album-title').textContent  = ALBUM  || '—';
-    document.getElementById('pit-album-artist').textContent = ARTIST || '—';
-    document.getElementById('pit-genre').textContent = GENRE || '';
-    document.getElementById('pit-year').textContent  = YEAR  || '';
+    dateEl.textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase();
 
-    // Artwork
-    if (ALBUM && ARTIST) {
-        const artUrl = await fetchArtwork(ALBUM, ARTIST);
-        if (artUrl) {
-            const img = document.getElementById('pit-art-img');
-            img.src = artUrl; img.style.display = 'block';
-            document.getElementById('pit-art-placeholder').style.display = 'none';
-            // Blurred artwork as atmosphere background behind the chat messages
-            const msgs = document.getElementById('pit-messages');
-            if (msgs) {
-                msgs.style.backgroundImage =
-                    `linear-gradient(rgba(5,1,2,0.82), rgba(5,1,2,0.88)), url(${artUrl})`;
-                msgs.style.backgroundSize = 'cover';
-                msgs.style.backgroundPosition = 'center';
-                msgs.style.backgroundAttachment = 'local';
-            }
-        }
-    }
+    // Update sidebar album info
+    document.getElementById('pit-album-title').textContent  = albumTitle;
+    document.getElementById('pit-album-artist').textContent = albumArtist;
+    document.getElementById('pit-genre').textContent = albumGenre;
+    document.getElementById('pit-year').textContent  = String(albumYear);
 
-    // Load messages, then poll every 15 seconds for new ones
-    await loadMessages();
+    // Reset artwork to placeholder while loading
+    const img = document.getElementById('pit-art-img');
+    img.style.display = 'none';
+    img.src = '';
+    document.getElementById('pit-art-placeholder').style.display = '';
+
+    // Clear old bg
     const msgs = document.getElementById('pit-messages');
+    msgs.style.backgroundImage = '';
+
+    // Update textarea placeholder
+    const ta = document.getElementById('pit-textarea');
+    if (offset === 0) {
+        ta.placeholder = "What do you think of today's album?";
+    } else if (offset === 1) {
+        ta.placeholder = "What did you think of yesterday's album?";
+    } else {
+        ta.placeholder = "What did you think of this album?";
+    }
+
+    // Restart poll timer
+    if (pollTimer) clearInterval(pollTimer);
+
+    // Load messages for this date
+    await loadMessages();
     msgs.scrollTop = msgs.scrollHeight;
     pollTimer = setInterval(loadMessages, 15000);
+
+    // Fetch and display artwork async
+    const artUrl = await fetchArtwork(albumTitle, albumArtist);
+    if (artUrl) {
+        img.src = artUrl;
+        img.style.display = 'block';
+        document.getElementById('pit-art-placeholder').style.display = 'none';
+        msgs.style.backgroundImage =
+            `linear-gradient(rgba(5,1,2,0.82), rgba(5,1,2,0.88)), url(${artUrl})`;
+        msgs.style.backgroundSize = 'cover';
+        msgs.style.backgroundPosition = 'center';
+        msgs.style.backgroundAttachment = 'local';
+    }
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+async function pitInit() {
+    await switchDay(0);
 }
 
 // ── Textarea char counter + enter-to-send ─────────────────────────
