@@ -2918,33 +2918,13 @@ updateUserBtn();
 
 
 // ══════════════════════════════════════════════════════════════
-// DEICIDE BELL — cascading rapid strikes, Deicide s/t intro
+// DEICIDE BELL — plays on login only
 // ══════════════════════════════════════════════════════════════
-let soundEnabled = localStorage.getItem('slambeats_sound') === 'true';
-let bellPlayed   = false;
-
-function updateSoundBtn() {
-    const btn = document.getElementById('sound-toggle-btn');
-    if (!btn) return;
-    btn.style.color = soundEnabled ? 'rgba(200,20,20,0.8)' : 'rgba(140,80,80,0.35)';
-    btn.title = soundEnabled ? 'Sound ON — click to mute' : 'Sound OFF — click to enable';
-}
-
-function toggleSound() {
-    soundEnabled = !soundEnabled;
-    localStorage.setItem('slambeats_sound', soundEnabled);
-    updateSoundBtn();
-    // Always play on enable — button click IS the user gesture browsers require
-    if (soundEnabled) playChurchBell();
-}
-
 function playChurchBell() {
     try {
-        bellPlayed = true;
         const audio = new Audio('bell.m4a');
         audio.volume = 1.0;
         audio.play().catch(e => console.warn('Audio play failed:', e));
-        return;
     } catch(e) { console.warn('Audio failed:', e); }
 }
 function playChurchBell_synth() {
@@ -3028,21 +3008,6 @@ function playChurchBell_synth() {
     } catch(e) { console.warn('Audio context failed:', e); }
 }
 
-// Check if this is a new album day and sound should play
-function checkAndPlayBell() {
-    if (!soundEnabled) return;
-    const lastBellDate = localStorage.getItem('slambeats_bell_date');
-    const todayStr = getTodayStr();
-    if (lastBellDate !== todayStr) {
-        localStorage.setItem('slambeats_bell_date', todayStr);
-        setTimeout(() => playChurchBell(), 800);
-    }
-}
-
-// Init sound button state on page load
-document.addEventListener('DOMContentLoaded', () => {
-    updateSoundBtn();
-});
 
 </script>
 
