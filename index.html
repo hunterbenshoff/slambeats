@@ -2724,7 +2724,7 @@ async function loadComments(date) {
 function renderComments(comments, usernameMap, date) {
     const el = document.getElementById('comments-list');
     if (!comments || comments.length === 0) {
-        el.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">No comments yet. Be first.</p>';
+        loadTopComments(el);
         return;
     }
     const isAdmin = getUsername()?.toLowerCase() === 'slambeatsdotkill';
@@ -2744,6 +2744,43 @@ function renderComments(comments, usernameMap, date) {
           <div class="comment-time">${time}</div>
         </div>`;
     }).join('');
+}
+
+async function loadTopComments(el) {
+    const today = getTodayStr();
+    try {
+        // Fetch recent comments from other days
+        const [cRes, uRes] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/comments?select=id,user_id,comment,created_at,album_date&album_date=neq.${today}&order=created_at.desc&limit=6`, { headers: SB_HEADERS }),
+            fetch(`${SUPABASE_URL}/rest/v1/users?select=user_id,username`, { headers: SB_HEADERS })
+        ]);
+        const comments = await cRes.json();
+        const users    = await uRes.json();
+        const uMap = {};
+        users.forEach(u => { uMap[u.user_id] = u.username; });
+
+        if (!comments || comments.length === 0) {
+            el.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">No comments yet. Be first.</p>';
+            return;
+        }
+
+        el.innerHTML = `<p style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--cborder)">FROM THE PIT</p>`
+            + comments.map(c => {
+                const uname = uMap[c.user_id] || 'unknown';
+                const d     = new Date(c.album_date + 'T12:00:00');
+                const [album] = getAlbumForDate(d);
+                const shortDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                return `<div class="comment-entry" style="opacity:0.75">
+                  <div class="comment-header">
+                    <span class="comment-username">${uname}</span>
+                    <span style="font-size:9px;color:var(--muted);margin-left:auto">${shortDate} · ${escapeHtml(album)}</span>
+                  </div>
+                  <div class="comment-text">${escapeHtml(c.comment)}</div>
+                </div>`;
+            }).join('');
+    } catch(e) {
+        el.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">No comments yet. Be first.</p>';
+    }
 }
 
 function escapeHtml(str) {
