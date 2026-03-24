@@ -1117,9 +1117,9 @@
         min-height: unset;
       }
 
-      /* Artwork card: full box styling matching other cards, flex column */
+      /* Artwork card: takes available space above newsletter */
       .kf-art-card {
-        flex: 0 1 auto;
+        flex: 1 1 0;
         min-height: 0;
         display: flex;
         flex-direction: column;
@@ -1198,9 +1198,26 @@
       .kf-spotify { flex-shrink: 0; margin-top: 0; }
       .kf-spotify iframe { height: 152px !important; }
 
-      /* Hide archive + newsletter on desktop — not needed above the fold */
-      .killing-archive-wrap,
-      #panel-killing-floor .newsletter-bar { display: none; }
+      /* Hide archive on desktop */
+      .killing-archive-wrap { display: none; }
+
+      /* Newsletter compact block under the album square */
+      .kf-newsletter {
+        flex-shrink: 0;
+        margin: 0;
+        padding: 12px 14px 10px;
+        border-top: 1px solid var(--cborder);
+        background: var(--card);
+        border: 1px solid var(--cborder);
+        border-radius: 12px;
+        text-align: center;
+      }
+      .kf-newsletter .newsletter-label { font-size: 11px; margin-bottom: 2px; }
+      .kf-newsletter .newsletter-sub   { font-size: 10px; margin-bottom: 8px; }
+      .kf-newsletter .newsletter-form  { gap: 6px; }
+      .kf-newsletter .newsletter-input { width: 100%; max-width: 200px; padding: 6px 10px; font-size: 12px; }
+      .kf-newsletter .newsletter-btn   { padding: 6px 12px; font-size: 10px; }
+      .kf-newsletter .newsletter-msg   { font-size: 10px; margin-top: 5px; }
 
       /* ── Compact everything for the viewport ── */
 
@@ -1346,16 +1363,16 @@
 
       </div><!-- /kf-art-card -->
 
-      <!-- Spotify removed from artwork column — needs a new home TBD -->
-      <!-- <div class="spotify-embed-wrap kf-spotify">
-        <p class="section-label">THE PLAYLIST</p>
-        <iframe
-          src="https://open.spotify.com/embed/playlist/4mZFXJ8NgaKQ01SxZBdAAX?utm_source=generator&theme=0"
-          width="100%" height="80" frameBorder="0" allowfullscreen=""
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy" style="border-radius:12px;">
-        </iframe>
-      </div> -->
+      <!-- Newsletter — lives under the album square -->
+      <div class="newsletter-bar kf-newsletter">
+        <p class="newsletter-label">JOIN THE LIST</p>
+        <p class="newsletter-sub">Daily album drops to your inbox. No bullshit.</p>
+        <form class="newsletter-form" onsubmit="submitNewsletter(event)">
+          <input type="email" id="newsletter-email" class="newsletter-input" placeholder="your@email.com" required />
+          <button type="submit" class="newsletter-btn">SUBSCRIBE</button>
+        </form>
+        <p class="newsletter-msg" id="newsletter-msg"></p>
+      </div>
 
     </div><!-- /kf-left -->
 
@@ -1442,15 +1459,6 @@
     <div id="killing-archive-list"></div>
   </div>
 
-  <div class="newsletter-bar">
-    <p class="newsletter-label">JOIN THE LIST</p>
-    <p class="newsletter-sub">Daily album drops to your inbox. No bullshit.</p>
-    <form class="newsletter-form" onsubmit="submitNewsletter(event)">
-      <input type="email" id="newsletter-email" class="newsletter-input" placeholder="your@email.com" required />
-      <button type="submit" class="newsletter-btn">SUBSCRIBE</button>
-    </form>
-    <p class="newsletter-msg" id="newsletter-msg"></p>
-  </div>
 
 </div>
 
@@ -3046,15 +3054,6 @@ async function init() {
         img.src = artUrl;
         img.style.display = 'block';
         document.getElementById('artwork-placeholder').style.display = 'none';
-        // Bleed the album art as a very dim tint behind the info card
-        // so the title/artist and artwork feel like they belong together
-        const infoCard = document.querySelector('.kf-info-card');
-        if (infoCard) {
-            infoCard.style.backgroundImage =
-                `linear-gradient(rgba(8,2,4,0.84), rgba(10,3,6,0.92)), url(${artUrl})`;
-            infoCard.style.backgroundSize = 'cover';
-            infoCard.style.backgroundPosition = 'center top';
-        }
     }
 
     // Service

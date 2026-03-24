@@ -620,6 +620,15 @@ async function pitInit() {
             const img = document.getElementById('pit-art-img');
             img.src = artUrl; img.style.display = 'block';
             document.getElementById('pit-art-placeholder').style.display = 'none';
+            // Blurred artwork as atmosphere background behind the chat messages
+            const msgs = document.getElementById('pit-messages');
+            if (msgs) {
+                msgs.style.backgroundImage =
+                    `linear-gradient(rgba(5,1,2,0.82), rgba(5,1,2,0.88)), url(${artUrl})`;
+                msgs.style.backgroundSize = 'cover';
+                msgs.style.backgroundPosition = 'center';
+                msgs.style.backgroundAttachment = 'local';
+            }
         }
     }
 
