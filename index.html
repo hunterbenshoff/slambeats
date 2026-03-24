@@ -1254,16 +1254,34 @@
       .album-header-row #view-selected { width: 28px; height: 28px; padding-top: 2px; }
       .album-header-row #view-selected img { width: 28px; height: 28px; border-radius: 7px; }
 
-      /* Metrics — 4 cols, tight cards */
-      .kf-info-card .metrics-wrap { margin-top: 4px; }
-      .metrics-wrap .section-label { margin-bottom: 2px; font-size: 9px; }
-      .metrics-grid { grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 0; }
-      .metric-card   { padding: 5px 6px; border-radius: 7px; }
-      .metric-number { font-size: 18px; }
-      .metric-label  { font-size: 8px; margin-top: 1px; letter-spacing: 1px; }
+      /* Top row: badges left, info+rating right */
+      .kf-info-top-row {
+        display: flex; flex-direction: row; gap: 10px;
+        align-items: flex-start; margin-bottom: 6px;
+      }
+      .kf-info-top-row .metrics-wrap { flex: 0 0 auto; margin-top: 0; }
+      .kf-info-right-col {
+        flex: 1 1 0; min-width: 0;
+        display: flex; flex-direction: column;
+      }
 
-      /* Comments — tight */
-      .kf-info-card .comments-wrap { margin-top: 6px; }
+      /* Metrics — 2 cols, compact badge cards */
+      .metrics-wrap .section-label { margin-bottom: 4px; font-size: 9px; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 4px; margin-top: 0; }
+      .metric-card   { padding: 4px 6px; border-radius: 6px; }
+      .metric-number { font-size: 15px; }
+      .metric-label  { font-size: 7px; margin-top: 1px; letter-spacing: 0.8px; }
+
+      /* Rating — right-aligned, stripped-down bar */
+      .rating-section   { padding: 4px 0 0; margin-top: 0; background: none; border-top: none; border-radius: 0; }
+      .rating-label     { font-size: 9px; margin-bottom: 2px; text-align: right; }
+      .rating-row       { justify-content: flex-end; }
+      .star-row         { gap: 2px; }
+      .star-btn         { font-size: 26px; }
+      .rating-sublabel  { display: none; }
+
+      /* Comments — tight, directly after top row */
+      .kf-info-card .comments-wrap { margin-top: 4px; }
       .comments-wrap .section-label { margin-bottom: 2px; font-size: 9px; }
       #comment-input { min-height: 36px; max-height: 50px; font-size: 12px; padding: 5px 10px; }
       .comment-input-footer { margin-top: 3px; margin-bottom: 5px; }
@@ -1303,9 +1321,9 @@
 
 <!-- ── Tab Nav (desktop) ── -->
 <nav class="tab-nav">
-  <button class="tab-btn active"  id="tab-killing-floor">The Killing Floor</button>
+  <button class="tab-btn active"  id="tab-killing-floor">KILLING FLOOR</button>
   <button class="tab-btn"  onclick="window.location.href='slamletterr.html'">The SlamLetter</button>
-  <button class="tab-btn"  onclick="window.location.href='crypt.html'">The Crypt</button>
+  <button class="tab-btn"  onclick="window.location.href='crypt.html'">CRYPT</button>
   <button class="tab-btn"  onclick="window.location.href='store.html'">Store</button>
   <div class="tab-right-cluster">
     <span class="nosifer-text date-text tab-date" id="date-display"></span>
@@ -1316,7 +1334,7 @@
 <!-- ── Mobile Nav ── -->
 <div class="mobile-nav" id="mobile-nav">
   <div class="mobile-menu-bar">
-    <span class="mobile-active-tab" id="mobile-active-label">The Killing Floor</span>
+    <span class="mobile-active-tab" id="mobile-active-label">KILLING FLOOR</span>
     <div style="display:flex;align-items:center;gap:8px;">
       <button class="tab-user-btn" id="mobile-user-btn" onclick="toggleProfileCard()" style="font-size:10px;padding:4px 8px;"></button>
       <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Open menu">
@@ -1325,9 +1343,9 @@
     </div>
   </div>
   <div class="mobile-dropdown" id="mobile-dropdown">
-    <button class="mobile-tab-btn active">The Killing Floor</button>
+    <button class="mobile-tab-btn active">KILLING FLOOR</button>
     <button class="mobile-tab-btn" onclick="window.location.href='slamletterr.html'">The SlamLetter</button>
-    <button class="mobile-tab-btn" onclick="window.location.href='crypt.html'">The Crypt</button>
+    <button class="mobile-tab-btn" onclick="window.location.href='crypt.html'">CRYPT</button>
     <button class="mobile-tab-btn" onclick="window.location.href='store.html'">Store</button>
   </div>
 </div>
@@ -1387,41 +1405,46 @@
     <div class="kf-right">
       <div class="album-card kf-info-card">
 
-        <!-- Album info -->
-        <div class="album-header-row">
-          <div class="album-header-text">
-            <h1 class="album-title"  id="album-title"></h1>
-            <p  class="album-artist" id="album-artist"></p>
-            <div class="album-meta">
-              <span class="tag"  id="album-genre"></span>
-              <span class="year" id="album-year"></span>
+        <!-- Top row: badges left, album info + rating right -->
+        <div class="kf-info-top-row">
+
+          <!-- Community Metrics (left column) -->
+          <div class="metrics-wrap" id="metrics-wrap">
+            <p class="section-label">COMMUNITY PULSE</p>
+            <div class="metrics-grid" id="metrics-grid">
+              <!-- populated by JS -->
             </div>
           </div>
-        </div>
 
-        <!-- Rating section -->
-        <div class="rating-section">
-          <p class="rating-label">Rate Today's Album</p>
-          <div class="rating-row">
-            <div class="star-row" id="star-row">
-              <button class="star-btn" data-val="1" onclick="setRating(1)">&#x2620;&#xFE0E;</button>
-              <button class="star-btn" data-val="2" onclick="setRating(2)">&#x2620;&#xFE0E;</button>
-              <button class="star-btn" data-val="3" onclick="setRating(3)">&#x2620;&#xFE0E;</button>
-              <button class="star-btn" data-val="4" onclick="setRating(4)">&#x2620;&#xFE0E;</button>
-              <button class="star-btn" data-val="5" onclick="setRating(5)">&#x2620;&#xFE0E;</button>
+          <!-- Album info + rating (right column) -->
+          <div class="kf-info-right-col">
+            <div class="album-header-row">
+              <div class="album-header-text">
+                <h1 class="album-title"  id="album-title"></h1>
+                <p  class="album-artist" id="album-artist"></p>
+                <div class="album-meta">
+                  <span class="tag"  id="album-genre"></span>
+                  <span class="year" id="album-year"></span>
+                </div>
+              </div>
             </div>
-            <p class="rating-sublabel" id="rating-sublabel"></p>
-          </div>
-          <div class="community-rating" id="community-rating"></div>
-        </div>
+            <div class="rating-section">
+              <p class="rating-label">Rate Today's Album</p>
+              <div class="rating-row">
+                <div class="star-row" id="star-row">
+                  <button class="star-btn" data-val="1" onclick="setRating(1)">&#x2620;&#xFE0E;</button>
+                  <button class="star-btn" data-val="2" onclick="setRating(2)">&#x2620;&#xFE0E;</button>
+                  <button class="star-btn" data-val="3" onclick="setRating(3)">&#x2620;&#xFE0E;</button>
+                  <button class="star-btn" data-val="4" onclick="setRating(4)">&#x2620;&#xFE0E;</button>
+                  <button class="star-btn" data-val="5" onclick="setRating(5)">&#x2620;&#xFE0E;</button>
+                </div>
+                <p class="rating-sublabel" id="rating-sublabel"></p>
+              </div>
+              <div class="community-rating" id="community-rating"></div>
+            </div>
+          </div><!-- /kf-info-right-col -->
 
-        <!-- Community Metrics -->
-        <div class="metrics-wrap" id="metrics-wrap">
-          <p class="section-label">COMMUNITY PULSE</p>
-          <div class="metrics-grid" id="metrics-grid">
-            <!-- populated by JS -->
-          </div>
-        </div>
+        </div><!-- /kf-info-top-row -->
 
         <!-- Comments -->
         <div class="comments-wrap" id="comments-wrap">
