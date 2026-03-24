@@ -1280,10 +1280,14 @@
         border-radius: 6px;
       }
       .rating-label     { font-size: 10px; margin-bottom: 6px; text-align: right; }
-      .rating-row       { justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
+      .rating-row       { flex-direction: column; align-items: flex-end; gap: 4px; }
       .star-row         { gap: 4px; }
       .star-btn         { font-size: 40px; }
-      .rating-sublabel  { font-size: 13px; width: 100%; text-align: right; min-height: 18px; }
+      .rating-sublabel  {
+        font-size: 13px; text-align: right;
+        min-height: 18px; width: 100%;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
 
       /* Comments — tight, directly after top row */
       .kf-info-card .comments-wrap { margin-top: 4px; }
