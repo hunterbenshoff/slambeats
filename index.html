@@ -1033,20 +1033,12 @@
       html { height: 100%; overflow: hidden; }
       body { height: 100%; min-height: unset; overflow: hidden; display: flex; flex-direction: column; }
 
-      /* Shrink header on desktop — give album art the space it deserves */
-      .header-logo { width: auto; height: 130px; }
+      /* Header: centered logo, bigger, banner fills both sides */
+      .site-header { flex-shrink: 0; align-items: center; justify-content: center; }
+      .header-logo { width: auto; height: 170px; margin: 0 auto; }
 
-      /* Move tab nav to the bottom — frees max vertical space for content */
-      .site-header { order: 1; flex-shrink: 0; }
-      .tab-panel   { order: 2; }
-      .tab-nav {
-        order: 3;
-        flex-shrink: 0;
-        position: relative;
-        top: auto;
-        border-top: 2px solid rgba(176,16,16,0.55);
-        border-bottom: none;
-      }
+      /* Tab nav stays under header (normal flow) */
+      .tab-nav { position: sticky; top: 0; }
 
       /* All panels fill remaining height; non-KF panels scroll internally */
       .tab-panel {
@@ -1066,17 +1058,21 @@
         flex-direction: column;
       }
 
-      /* Two-column grid fills the panel */
+      /* Two-column grid: info left, artwork right */
       .kf-grid {
         flex: 1;
         min-height: 0;
         display: grid;
-        grid-template-columns: 1fr 1.1fr;
+        grid-template-columns: 1.1fr 1fr;
         gap: 24px;
         overflow: hidden;
       }
 
-      /* ── Left column: artwork expands to fill ── */
+      /* Swap visual order: info on left, artwork on right */
+      .kf-left  { order: 2; } /* artwork → right */
+      .kf-right { order: 1; } /* info   → left  */
+
+      /* ── Right column (artwork): expands to fill ── */
       .kf-left {
         display: flex;
         flex-direction: column;
