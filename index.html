@@ -396,13 +396,30 @@
     .service-btn:hover { transform: scale(1.18); opacity: 1; }
     .service-btn img { width: 54px; height: 54px; display: block; border-radius: 12px; }
     .service-btn span { display: none; }
-    .change-service { text-align: center; margin-top: 6px; }
-    .change-service button {
-      background: none; border: none; color: var(--muted);
-      font-size: 11px; cursor: pointer;
-      text-decoration: underline; text-underline-offset: 3px;
+    /* ── Selected-service bubble (replaces 3 icons once linked) ── */
+    #view-selected {
+      display: none;
+      cursor: pointer;
+      position: relative;
+      width: 38px; height: 38px;
+      transition: transform 0.15s, opacity 0.15s;
     }
-    .change-service button:hover { color: var(--sub); }
+    #view-selected:hover { transform: scale(0.9); opacity: 0.75; }
+    #view-selected img {
+      width: 38px; height: 38px;
+      border-radius: 10px; display: block;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+    }
+    #view-selected::after {
+      content: '✓';
+      position: absolute; bottom: -3px; right: -3px;
+      width: 14px; height: 14px;
+      background: #22c55e; color: #fff;
+      border-radius: 50%;
+      font-size: 8px; font-weight: 900;
+      text-align: center; line-height: 14px;
+      pointer-events: none;
+    }
 
     /* ── Skull rating ────────────────────────────────────────── */
     .rating-section {
@@ -1231,9 +1248,9 @@
       .album-header-row #view-pick .picker-label { display: none; }
       .album-header-row #view-pick .service-grid { gap: 8px; padding: 0; justify-content: flex-end; }
       .album-header-row #view-pick .service-btn img { width: 30px; height: 30px; }
-      .album-header-row #view-listen { flex-shrink: 0; padding-top: 2px; }
-      .album-header-row .listen-btn { padding: 5px 12px; font-size: 11px; }
-      .album-header-row .change-service { text-align: right; }
+      /* Linked state: smaller icon in the header row */
+      .album-header-row #view-selected { width: 30px; height: 30px; padding-top: 2px; }
+      .album-header-row #view-selected img { width: 30px; height: 30px; border-radius: 8px; }
 
       /* More room for comments */
       #comments-list { max-height: 260px; }
@@ -1370,14 +1387,8 @@
               </button>
             </div>
           </div>
-          <div id="view-listen">
-            <a id="listen-link" class="listen-btn" target="_blank" rel="noopener">
-              <svg class="btn-icon" id="btn-icon" viewBox="0 0 24 24" fill="currentColor"></svg>
-              <span id="btn-label">Listen Now</span>
-            </a>
-            <div class="change-service">
-              <button onclick="resetService()">Change streaming service</button>
-            </div>
+          <div id="view-selected" onclick="resetService()" title="Tap to change service">
+            <img id="selected-svc-icon" src="" alt="">
           </div>
         </div>
 
@@ -2083,18 +2094,21 @@ function formatDateHeader(d) {
 const SERVICES = {
     apple: {
         name: 'Apple Music',
+        img:  'logo-apple-music.svg',
         url: (album, artist) =>
             `https://music.apple.com/search?term=${encodeURIComponent(album + ' ' + artist)}`,
         icon: `<rect width="24" height="24" rx="5" fill="#fc3c44"/><path d="M16 7H9v7.75c-.32-.13-.67-.25-1-.25-1.66 0-3 1.12-3 2.5s1.34 2.5 3 2.5 3-1.12 3-2.5V9.5h4V7z" fill="#fff"/>`
     },
     spotify: {
         name: 'Spotify',
+        img:  'logo-spotify.svg',
         url: (album, artist) =>
             `https://open.spotify.com/search/${encodeURIComponent(album + ' ' + artist)}/albums`,
         icon: `<rect width="24" height="24" rx="12" fill="#1db954"/><path d="M17 13.1c-2.6-1.5-6.4-1.9-9-1.1-.4.1-.7-.1-.8-.4-.1-.4.1-.7.4-.8 3-.9 7.1-.5 9.9 1.3.3.2.4.7.2 1-.2.3-.5.4-.7.2zm-.6 2.3c-.2.3-.6.4-.9.2-2.2-1.3-5.4-1.7-8-1-.3.1-.7-.1-.8-.4-.1-.3.1-.7.4-.8 2.9-.8 6.4-.4 8.9 1 .3.2.4.6.2.9zm-.9 2.1c-.2.3-.5.3-.7.2-1.9-1.1-4.2-1.4-7-.8-.3.1-.5-.1-.6-.4-.1-.3.1-.5.4-.6 3-.7 5.6-.3 7.7.9.2.2.3.5.2.7z" fill="#fff"/>`
     },
     youtube: {
         name: 'YouTube Music',
+        img:  'logo-youtube-music.svg',
         url: (album, artist) =>
             `https://music.youtube.com/search?q=${encodeURIComponent(album + ' ' + artist)}`,
         icon: `<rect width="24" height="24" rx="12" fill="#ff0000"/><circle cx="12" cy="12" r="5" fill="#fff"/><circle cx="12" cy="12" r="3" fill="#ff0000"/><path d="M10.5 10.5l4 1.5-4 1.5v-3z" fill="#fff"/>`
@@ -2609,6 +2623,11 @@ async function renderMetrics(cache) {
     // Today's vote count
     const todayVotes = cache[today] ? cache[today].count : 0;
 
+    // Today's avg score
+    const todayAvg = cache[today] && cache[today].count > 0
+        ? cache[today].avg.toFixed(1)
+        : '—';
+
     // Community avg score across all time
     const avgScore = allVals.length > 0
         ? (allVals.reduce((s,v) => s+v, 0) / allVals.length).toFixed(1)
@@ -2617,6 +2636,14 @@ async function renderMetrics(cache) {
     // Unique voices — distinct user_ids who have ever rated
     const allUserIds = new Set(allDates.flatMap(d => cache[d].ratings.map(r => r.user_id)));
     const uniqueVoices = allUserIds.size;
+
+    // Albums covered — distinct days the community has rated
+    const albumsCovered = allDates.length;
+
+    // This week — votes in the last 7 days
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 6);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    const thisWeek = allDates.filter(d => d >= cutoffStr).reduce((s,d) => s + cache[d].count, 0);
 
     // Today's comment count
     let todayComments = '—';
@@ -2629,11 +2656,26 @@ async function renderMetrics(cache) {
         todayComments = Array.isArray(data) ? data.length : '—';
     } catch(e) {}
 
+    // All-time pit comments total
+    let pitTotal = '—';
+    try {
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/comments?select=id`,
+            { headers: { ...SB_HEADERS, 'Prefer': 'count=exact', 'Range': '0-0' } }
+        );
+        const range = res.headers.get('Content-Range');
+        pitTotal = range ? range.split('/')[1] : '—';
+    } catch(e) {}
+
     grid.innerHTML = [
         { n: todayVotes,    l: 'Voted Today' },
         { n: todayComments, l: 'In the Pit' },
-        { n: avgScore,      l: 'Community Avg' },
+        { n: todayAvg,      l: "Today's Avg" },
+        { n: avgScore,      l: 'All-Time Avg' },
         { n: uniqueVoices,  l: 'Unique Voices' },
+        { n: albumsCovered, l: 'Albums Covered' },
+        { n: thisWeek,      l: 'This Week' },
+        { n: pitTotal,      l: 'Pit Comments' },
     ].map(m => `<div class="metric-card">
         <span class="metric-number">${m.n}</span>
         <span class="metric-label">${m.l}</span>
@@ -2932,12 +2974,10 @@ document.addEventListener('click', function(e) {
 // SERVICE SELECTION
 // ══════════════════════════════════════════════════════════════
 function artworkClick() {
-    const svc = localStorage.getItem('dailyalbum_service');
-    if (svc && SERVICES[svc]) {
-        const link = document.getElementById('listen-link');
-        if (link && link.href && !link.href.endsWith(window.location.pathname)) {
-            window.open(link.href, '_blank', 'noopener');
-        }
+    const svcKey = localStorage.getItem('dailyalbum_service');
+    if (svcKey && SERVICES[svcKey]) {
+        const [album, artist] = getAlbumForDate(new Date());
+        window.open(SERVICES[svcKey].url(album, artist), '_blank', 'noopener');
     } else {
         // No service chosen yet — highlight the picker
         const picker = document.getElementById('view-pick');
@@ -2961,25 +3001,23 @@ function pickService(serviceKey) {
         }).catch(() => {});
     }
     const [album, artist] = getAlbumForDate(new Date());
-    showListenView(serviceKey, album, artist);
+    showListenView(serviceKey);
     window.open(SERVICES[serviceKey].url(album, artist), '_blank');
 }
 
-function showListenView(serviceKey, album, artist) {
+function showListenView(serviceKey) {
     const svc = SERVICES[serviceKey];
-    document.getElementById('view-pick').style.display   = 'none';
-    document.getElementById('view-listen').style.display = 'block';
-    const btn = document.getElementById('listen-link');
-    btn.href = svc.url(album, artist);
-    btn.className = `listen-btn btn-${serviceKey}`;
-    document.getElementById('btn-icon').innerHTML = svc.icon;
-    document.getElementById('btn-label').textContent = `Listen on ${svc.name}`;
+    document.getElementById('view-pick').style.display     = 'none';
+    document.getElementById('view-selected').style.display = 'block';
+    const icon = document.getElementById('selected-svc-icon');
+    icon.src = svc.img;
+    icon.alt = svc.name;
 }
 
 function resetService() {
     localStorage.removeItem('dailyalbum_service');
-    document.getElementById('view-listen').style.display = 'none';
-    document.getElementById('view-pick').style.display   = 'block';
+    document.getElementById('view-selected').style.display = 'none';
+    document.getElementById('view-pick').style.display     = 'block';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -3008,12 +3046,21 @@ async function init() {
         img.src = artUrl;
         img.style.display = 'block';
         document.getElementById('artwork-placeholder').style.display = 'none';
+        // Bleed the album art as a very dim tint behind the info card
+        // so the title/artist and artwork feel like they belong together
+        const infoCard = document.querySelector('.kf-info-card');
+        if (infoCard) {
+            infoCard.style.backgroundImage =
+                `linear-gradient(rgba(8,2,4,0.84), rgba(10,3,6,0.92)), url(${artUrl})`;
+            infoCard.style.backgroundSize = 'cover';
+            infoCard.style.backgroundPosition = 'center top';
+        }
     }
 
     // Service
     const saved = localStorage.getItem('dailyalbum_service');
     if (saved && SERVICES[saved]) {
-        showListenView(saved, album, artist);
+        showListenView(saved);
     } else {
         document.getElementById('view-pick').style.display = 'block';
     }
