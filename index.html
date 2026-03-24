@@ -1129,21 +1129,29 @@
         overflow: visible;
         /* inherits .album-card background, border, border-radius, padding */
       }
-      /* Date: centered below artwork, proportional to panel width */
-      .artwork-date {
+      /* Underbar: date left, service right, flush with artwork edges */
+      .kf-underbar {
         width: 100%;
-        text-align: center;
-        font-family: 'Nosifer', cursive;
-        font-size: clamp(9px, 0.85vw, 13px);
-        letter-spacing: clamp(2px, 0.2vw, 4px);
-        text-transform: uppercase;
-        color: #f0e6d3;
-        text-shadow: 0 0 14px rgba(176,16,16,1), 0 2px 8px rgba(0,0,0,0.95);
-        margin: 0;
-        padding: 4px 0 0;
-        line-height: 1.4;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 6px;
         flex-shrink: 0;
       }
+      .kf-underbar .artwork-date {
+        text-align: left;
+        width: auto;
+        margin: 0; padding: 0;
+        font-size: clamp(9px, 0.85vw, 13px);
+        letter-spacing: clamp(2px, 0.2vw, 4px);
+      }
+      .kf-underbar-svc { flex-shrink: 0; display: flex; align-items: center; }
+      .kf-underbar-svc #view-pick .picker-label { display: none; }
+      .kf-underbar-svc #view-pick .service-grid { gap: 6px; padding: 0; justify-content: flex-end; }
+      .kf-underbar-svc #view-pick .service-btn img { width: 26px; height: 26px; }
+      .kf-underbar-svc #view-selected { width: 26px; height: 26px; }
+      .kf-underbar-svc #view-selected img { width: 26px; height: 26px; border-radius: 7px; }
       /* Hide the tab-nav date — the card date replaces it */
       #date-display { display: none; }
       /* Artwork: never crop — flex-shrink:0 keeps it square, contain shows full cover */
@@ -1346,7 +1354,21 @@
           <img id="artwork-img" style="display:none" alt="Album artwork">
         </div>
 
-        <p class="artwork-date" id="artwork-date"></p>
+        <div class="kf-underbar">
+          <p class="artwork-date" id="artwork-date"></p>
+          <div class="kf-underbar-svc">
+            <div id="view-pick">
+              <div class="service-grid">
+                <button class="service-btn" onclick="pickService('apple')"><img src="logo-apple-music.svg" alt="Apple Music"><span>Apple Music</span></button>
+                <button class="service-btn" onclick="pickService('spotify')"><img src="logo-spotify.svg" alt="Spotify"><span>Spotify</span></button>
+                <button class="service-btn" onclick="pickService('youtube')"><img src="logo-youtube-music.svg" alt="YouTube Music"><span>YouTube Music</span></button>
+              </div>
+            </div>
+            <div id="view-selected" onclick="resetService()" title="Tap to change service">
+              <img id="selected-svc-icon" src="" alt="">
+            </div>
+          </div>
+        </div>
 
       </div><!-- /kf-art-card -->
 
@@ -1357,7 +1379,7 @@
     <div class="kf-right">
       <div class="album-card kf-info-card">
 
-        <!-- Info + service icons on same row -->
+        <!-- Album info -->
         <div class="album-header-row">
           <div class="album-header-text">
             <h1 class="album-title"  id="album-title"></h1>
@@ -1366,23 +1388,6 @@
               <span class="tag"  id="album-genre"></span>
               <span class="year" id="album-year"></span>
             </div>
-          </div>
-          <!-- Service icons — far right, no label -->
-          <div id="view-pick">
-            <div class="service-grid">
-              <button class="service-btn" onclick="pickService('apple')">
-                <img src="logo-apple-music.svg" alt="Apple Music"><span>Apple Music</span>
-              </button>
-              <button class="service-btn" onclick="pickService('spotify')">
-                <img src="logo-spotify.svg" alt="Spotify"><span>Spotify</span>
-              </button>
-              <button class="service-btn" onclick="pickService('youtube')">
-                <img src="logo-youtube-music.svg" alt="YouTube Music"><span>YouTube Music</span>
-              </button>
-            </div>
-          </div>
-          <div id="view-selected" onclick="resetService()" title="Tap to change service">
-            <img id="selected-svc-icon" src="" alt="">
           </div>
         </div>
 
