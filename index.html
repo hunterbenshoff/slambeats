@@ -1280,12 +1280,12 @@
         border-radius: 6px;
       }
       .rating-label     { font-size: 10px; margin-bottom: 6px; text-align: right; }
-      .rating-row       { flex-direction: column; align-items: flex-end; gap: 4px; }
-      .star-row         { gap: 4px; }
+      .rating-row       { display: flex; flex-direction: column; align-items: stretch; gap: 2px; }
+      .star-row         { display: flex; gap: 4px; justify-content: flex-end; width: 100%; }
       .star-btn         { font-size: 40px; }
       .rating-sublabel  {
         font-size: 13px; text-align: right;
-        min-height: 18px; width: 100%;
+        min-height: 18px; width: 100%; margin: 0;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
 
