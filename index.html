@@ -1032,8 +1032,18 @@
       /* Lock the page to viewport height — no outer scroll */
       html { height: 100%; overflow: hidden; }
       body { height: 100%; min-height: unset; overflow: hidden; display: flex; flex-direction: column; }
-      .site-header { flex-shrink: 0; }
-      .tab-nav     { flex-shrink: 0; }
+
+      /* Move tab nav to the bottom — frees max vertical space for content */
+      .site-header { order: 1; flex-shrink: 0; }
+      .tab-panel   { order: 2; }
+      .tab-nav {
+        order: 3;
+        flex-shrink: 0;
+        position: relative;
+        top: auto;
+        border-top: 2px solid rgba(176,16,16,0.55);
+        border-bottom: none;
+      }
 
       /* All panels fill remaining height; non-KF panels scroll internally */
       .tab-panel {
@@ -1128,6 +1138,46 @@
       /* Hide archive + newsletter on desktop — not needed above the fold */
       .killing-archive-wrap,
       #panel-killing-floor .newsletter-bar { display: none; }
+
+      /* ── Compact everything for the viewport ── */
+
+      /* Reduce card padding */
+      .kf-art-card  { padding: 10px 12px; }
+      .kf-info-card { padding: 10px 14px; }
+
+      /* Album info — tighter */
+      .album-title  { font-size: 20px; margin-bottom: 2px; }
+      .album-artist { font-size: 14px; margin-bottom: 2px; }
+      .album-meta   { margin-bottom: 6px; }
+
+      /* Rating — smaller skulls, tighter label */
+      .rating-section   { padding: 7px 10px; margin-top: 0; }
+      .rating-label     { font-size: 9px; margin-bottom: 5px; }
+      .star-btn         { font-size: 28px; }
+      .rating-sublabel  { font-size: 15px; }
+      .community-rating { font-size: 10px; margin-top: 3px; }
+
+      /* Metrics — 4 cols in one row, tiny cards */
+      .kf-info-card .metrics-wrap { margin-top: 6px; }
+      .metrics-wrap .section-label { margin-bottom: 3px; }
+      .metrics-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 0; }
+      .metric-card  { padding: 5px 8px; }
+
+      /* Comments — tight */
+      .kf-info-card .comments-wrap { margin-top: 6px; }
+      .comments-wrap .section-label { margin-bottom: 3px; }
+      #comment-input { min-height: 38px; max-height: 52px; font-size: 12px; padding: 6px 10px; }
+      .comment-input-footer { margin-top: 4px; margin-bottom: 6px; }
+
+      /* Spotify — use smallest embed height */
+      .kf-spotify { margin-top: 8px; }
+      .kf-spotify iframe { height: 80px !important; }
+      .kf-spotify .section-label { margin-bottom: 3px; }
+
+      /* Art card streaming buttons — tighter */
+      .picker-label { margin-bottom: 6px; font-size: 10px; }
+      .service-grid { gap: 18px; padding: 2px 0 0; }
+      .service-btn img { width: 42px; height: 42px; }
     }
 
   </style>
