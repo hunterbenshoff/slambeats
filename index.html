@@ -1079,7 +1079,10 @@
       }
       .kf-right { order: 1; }
 
-      /* ── ARTWORK: fixed full-height panel on right, bleeds over banner ── */
+      /* Tab nav: clean right edge — border-right caps it like a corner */
+      .tab-nav { border-right: 2px solid rgba(176,16,16,0.55); }
+
+      /* ── ARTWORK: fixed panel on right, vertically centered, smaller ── */
       .kf-left {
         position: fixed !important;
         right: 0; top: 0;
@@ -1087,64 +1090,57 @@
         height: 100dvh;
         display: flex !important;
         flex-direction: column;
-        gap: 6px;
-        padding: 10px 12px 12px;
+        align-items: stretch;
+        justify-content: center;
+        gap: 0;
+        padding: 80px 16px 24px;
         z-index: 2;
         overflow: hidden;
         order: unset;
         min-height: unset;
       }
 
-      /* Artwork card: no chrome, full height, relative for date overlay */
+      /* Artwork card: full box styling matching other cards, flex column */
       .kf-art-card {
-        flex: 1; min-height: 0;
-        position: relative;
+        flex: 0 1 auto;
+        min-height: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
+        gap: 10px;
         overflow: hidden;
-        background: transparent;
-        border: none;
-        box-shadow: none;
-        padding: 0;
+        /* inherits .album-card background, border, border-radius, padding */
       }
-      /* Date: big DeardorfDrip bloody overlay ON the artwork, top-centered */
+      /* Date: normal-flow text row at top of card, Nosifer, bloody glow */
       .artwork-date {
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        z-index: 5;
-        pointer-events: none;
+        width: 100%;
         text-align: center;
-        font-family: 'DeardorfDrip', cursive;
-        font-size: 26px;
-        letter-spacing: 2px;
+        font-family: 'Nosifer', cursive;
+        font-size: 13px;
+        letter-spacing: 3px;
         text-transform: uppercase;
-        color: #e8251a;
-        text-shadow:
-          0 0 8px rgba(220,20,10,1),
-          0 0 20px rgba(200,10,0,0.95),
-          0 0 40px rgba(176,0,0,0.8),
-          0 0 70px rgba(140,0,0,0.5),
-          0 3px 10px rgba(0,0,0,0.98),
-          2px 4px 16px rgba(0,0,0,0.9);
-        padding: 22px 16px 40px;
-        background: linear-gradient(to bottom, rgba(3,0,1,0.92) 0%, rgba(5,1,2,0.55) 60%, transparent 100%);
+        color: #f0e6d3;
+        text-shadow: 0 0 14px rgba(176,16,16,1), 0 2px 8px rgba(0,0,0,0.95);
         margin: 0;
+        padding: 0;
+        line-height: 1.4;
+        flex-shrink: 0;
       }
-      /* Hide the tab-nav date — the artwork overlay replaces it */
+      /* Hide the tab-nav date — the card date replaces it */
       #date-display { display: none; }
-      /* Artwork: fills the full card height */
+      /* Artwork: square, fills card width but not taller than remaining space */
       .kf-art-card .artwork-wrap {
-        flex: 1; min-height: 0;
-        width: auto; max-width: 100%;
+        width: 100%;
+        max-width: 100%;
         aspect-ratio: 1;
-        border-radius: 12px;
-        margin-bottom: 0;
+        border-radius: 10px;
         cursor: pointer;
         position: relative;
+        flex-shrink: 1;
+        min-height: 0;
       }
       .kf-art-card .artwork-wrap img { object-fit: cover; }
-      .kf-art-card .artwork-wrap .artwork-placeholder { font-size: 120px; }
+      .kf-art-card .artwork-wrap .artwork-placeholder { font-size: 100px; }
 
       /* ── Right column: scrolls internally if content taller than viewport ── */
       .kf-right {
@@ -1192,7 +1188,7 @@
       /* ── Compact everything for the viewport ── */
 
       /* Reduce card padding */
-      .kf-art-card  { padding: 10px 12px; }
+      .kf-art-card  { padding: 14px 16px; }
       .kf-info-card { padding: 10px 14px; }
 
       /* Album info — tighter */
@@ -1324,10 +1320,11 @@
     <div class="kf-left">
       <div class="album-card kf-art-card">
 
+        <p class="artwork-date" id="artwork-date"></p>
+
         <div class="artwork-wrap" onclick="artworkClick()" title="Click to listen">
           <div class="artwork-placeholder" id="artwork-placeholder">🎵</div>
           <img id="artwork-img" style="display:none" alt="Album artwork">
-          <p class="artwork-date" id="artwork-date"></p>
         </div>
 
       </div><!-- /kf-art-card -->
@@ -1420,7 +1417,7 @@
             <p id="comment-filter-error" style="font-size:11px;color:var(--red);min-height:14px;margin:4px 0 0;"></p>
           </div>
           <div id="comments-list"></div>
-          <button class="open-pit-btn" onclick="switchTab('pit')">OPEN THE FULL PIT →</button>
+          <button class="open-pit-btn" onclick="openFullChatRoom()">FULL CHAT ROOM →</button>
         </div>
 
       </div><!-- /kf-info-card -->
@@ -3022,6 +3019,13 @@ async function init() {
 
 init();
 updateUserBtn();
+
+function openFullChatRoom() {
+    const today = new Date();
+    const [album, artist, year, genre] = getAlbumForDate(today);
+    const p = new URLSearchParams({ album, artist, year: String(year), genre, date: getTodayStr() });
+    window.location.href = 'pit.html?' + p.toString();
+}
 
 // ══════════════════════════════════════════════════════════════
 // BLOOD DRIP ANIMATION — Realistic
