@@ -402,21 +402,25 @@
     }
     .star-row { display: flex; gap: 4px; margin-bottom: 8px; }
     .star-btn {
-      background: none; border: none;
-      font-size: 32px; cursor: pointer; padding: 2px; line-height: 1;
-      transition: transform 0.12s, filter 0.12s;
-      filter: drop-shadow(0 0 3px rgba(180,0,0,0.6)) grayscale(1) brightness(0.5) sepia(1) saturate(5) hue-rotate(310deg);
+      background: rgba(120,0,0,0.15);
+      border: 1px solid rgba(160,0,0,0.3);
+      border-radius: 6px;
+      font-size: 28px; cursor: pointer; padding: 4px 6px; line-height: 1;
+      transition: transform 0.12s, background 0.12s, border-color 0.12s;
       font-variant-emoji: text;
-      opacity: 0.7;
+      opacity: 0.55;
     }
-    .star-btn:hover      { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 6px rgba(220,0,0,0.9)) grayscale(1) brightness(0.6) sepia(1) saturate(8) hue-rotate(310deg); }
+    .star-btn:hover      { transform: scale(1.15); opacity: 1; background: rgba(160,0,0,0.3); border-color: rgba(200,0,0,0.6); }
     .star-btn.lit        {
       opacity: 1;
-      filter: drop-shadow(0 0 5px rgba(200,0,0,0.7)) grayscale(1) brightness(0.7) sepia(1) saturate(10) hue-rotate(310deg);
+      background: rgba(160,0,0,0.3);
+      border-color: rgba(200,0,0,0.6);
     }
     .star-btn.saved      {
       opacity: 1;
-      filter: drop-shadow(0 0 10px rgba(255,40,40,1)) grayscale(1) brightness(0.8) sepia(1) saturate(15) hue-rotate(310deg);
+      background: rgba(200,0,0,0.4);
+      border-color: rgba(255,40,40,0.9);
+      box-shadow: 0 0 8px rgba(255,0,0,0.5);
     }
     .rating-sublabel {
       font-size: 11px; color: rgba(200,140,120,0.8); min-height: 16px; letter-spacing: 1px;
