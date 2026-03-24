@@ -1046,12 +1046,16 @@
       html { height: 100%; overflow: hidden; }
       body { height: 100%; min-height: unset; overflow: hidden; display: flex; flex-direction: column; }
 
-      /* Header: centered logo at full baseline size, banner fills both sides */
-      .site-header { flex-shrink: 0; align-items: center; justify-content: center; }
-      .header-logo { width: min(640px, 85vw); height: auto; margin: 0 auto; }
+      /* Header: logo back to left (baseline), banner fills full width */
+      .site-header { flex-shrink: 0; align-items: flex-start; justify-content: flex-start; }
+      .header-logo { width: min(640px, 85vw); height: auto; margin: 0; }
 
-      /* Tab nav stays under header (normal flow) */
-      .tab-nav { position: sticky; top: 0; }
+      /* Tab nav stops before the artwork column — right side shows banner/dark bg */
+      .tab-nav {
+        position: sticky; top: 0;
+        max-width: calc((100% - 24px) * 1.1 / 2.1 + 32px);
+        border-right: none;
+      }
 
       /* All panels fill remaining height; non-KF panels scroll internally */
       .tab-panel {
@@ -1085,28 +1089,46 @@
       .kf-left  { order: 2; } /* artwork → right */
       .kf-right { order: 1; } /* info   → left  */
 
-      /* ── Right column (artwork): expands to fill ── */
+      /* ── Right column (artwork): full height, no card chrome ── */
       .kf-left {
         display: flex;
         flex-direction: column;
         min-height: 0;
         overflow: hidden;
         position: static;
+        gap: 8px;
       }
       .kf-art-card {
         flex: 1;
         min-height: 0;
         display: flex;
         flex-direction: column;
+        align-items: center;
         overflow: hidden;
+        /* No card background — artwork is the visual */
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+      }
+      .artwork-date {
+        width: 100%;
+        text-align: center;
+        padding: 0 0 6px;
+        flex-shrink: 0;
       }
       .kf-art-card .artwork-wrap {
         flex: 1;
         min-height: 0;
-        width: 100%;
-        aspect-ratio: unset;
-        margin-bottom: 12px;
+        width: auto;
+        max-width: 100%;
+        aspect-ratio: 1;
+        border-radius: 10px;
+        margin-bottom: 0;
       }
+      /* Show full artwork — no cropping */
+      .kf-art-card .artwork-wrap img { object-fit: contain; }
+      .kf-art-card .artwork-wrap .artwork-placeholder { font-size: 120px; }
 
       /* ── Right column: scrolls internally if content taller than viewport ── */
       .kf-right {
@@ -1186,10 +1208,37 @@
       .kf-spotify iframe { height: 80px !important; }
       .kf-spotify .section-label { margin-bottom: 3px; }
 
-      /* Art card streaming buttons — tighter */
-      .picker-label { margin-bottom: 6px; font-size: 10px; }
-      .service-grid { gap: 18px; padding: 2px 0 0; }
-      .service-btn img { width: 42px; height: 42px; }
+      /* Album header row: title/artist left, service icons right */
+      .album-header-row {
+        display: flex; align-items: flex-start;
+        justify-content: space-between; gap: 10px;
+        margin-bottom: 6px;
+      }
+      .album-header-text { flex: 1; min-width: 0; }
+      .album-header-row #view-pick { flex-shrink: 0; padding-top: 2px; }
+      .album-header-row #view-pick .picker-label { display: none; }
+      .album-header-row #view-pick .service-grid { gap: 8px; padding: 0; justify-content: flex-end; }
+      .album-header-row #view-pick .service-btn img { width: 30px; height: 30px; }
+      .album-header-row #view-listen { flex-shrink: 0; padding-top: 2px; }
+      .album-header-row .listen-btn { padding: 5px 12px; font-size: 11px; }
+      .album-header-row .change-service { text-align: right; }
+
+      /* More room for comments */
+      #comments-list { max-height: 260px; }
+
+      /* Open Full Pit link */
+      .open-pit-btn {
+        display: block; width: 100%;
+        background: none; border: 1px solid rgba(176,16,16,0.4);
+        color: var(--muted); font-size: 10px; letter-spacing: 2px;
+        text-transform: uppercase; padding: 7px; cursor: pointer;
+        border-radius: 6px; margin-top: 8px;
+        transition: color 0.15s, border-color 0.15s;
+      }
+      .open-pit-btn:hover { color: var(--amber); border-color: var(--amber); }
+
+      /* Spotify in artwork column */
+      .kf-left .kf-spotify { flex-shrink: 0; margin-top: 0; }
     }
 
   </style>
@@ -1256,30 +1305,69 @@
 
   <div class="kf-grid">
 
-    <!-- ── LEFT COLUMN: Pure Artwork (click → streaming) ── -->
+    <!-- ── RIGHT COLUMN: Full artwork, date above, Spotify below ── -->
     <div class="kf-left">
       <div class="album-card kf-art-card">
+
+        <p class="artwork-date" id="artwork-date"></p>
 
         <div class="artwork-wrap" onclick="artworkClick()" title="Click to listen">
           <div class="artwork-placeholder" id="artwork-placeholder">🎵</div>
           <img id="artwork-img" style="display:none" alt="Album artwork">
         </div>
 
-        <p class="artwork-date" id="artwork-date"></p>
-
       </div><!-- /kf-art-card -->
+
+      <!-- Spotify sits below the artwork in the same column -->
+      <div class="spotify-embed-wrap kf-spotify">
+        <p class="section-label">THE PLAYLIST</p>
+        <iframe
+          src="https://open.spotify.com/embed/playlist/4mZFXJ8NgaKQ01SxZBdAAX?utm_source=generator&theme=0"
+          width="100%" height="80" frameBorder="0" allowfullscreen=""
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy" style="border-radius:12px;">
+        </iframe>
+      </div>
+
     </div><!-- /kf-left -->
 
     <!-- ── RIGHT COLUMN: Info + Rating + Comments + Spotify ── -->
     <div class="kf-right">
       <div class="album-card kf-info-card">
 
-        <!-- Info -->
-        <h1 class="album-title"  id="album-title"></h1>
-        <p  class="album-artist" id="album-artist"></p>
-        <div class="album-meta">
-          <span class="tag"  id="album-genre"></span>
-          <span class="year" id="album-year"></span>
+        <!-- Info + service icons on same row -->
+        <div class="album-header-row">
+          <div class="album-header-text">
+            <h1 class="album-title"  id="album-title"></h1>
+            <p  class="album-artist" id="album-artist"></p>
+            <div class="album-meta">
+              <span class="tag"  id="album-genre"></span>
+              <span class="year" id="album-year"></span>
+            </div>
+          </div>
+          <!-- Service icons — far right, no label -->
+          <div id="view-pick">
+            <div class="service-grid">
+              <button class="service-btn" onclick="pickService('apple')">
+                <img src="logo-apple-music.svg" alt="Apple Music"><span>Apple Music</span>
+              </button>
+              <button class="service-btn" onclick="pickService('spotify')">
+                <img src="logo-spotify.svg" alt="Spotify"><span>Spotify</span>
+              </button>
+              <button class="service-btn" onclick="pickService('youtube')">
+                <img src="logo-youtube-music.svg" alt="YouTube Music"><span>YouTube Music</span>
+              </button>
+            </div>
+          </div>
+          <div id="view-listen">
+            <a id="listen-link" class="listen-btn" target="_blank" rel="noopener">
+              <svg class="btn-icon" id="btn-icon" viewBox="0 0 24 24" fill="currentColor"></svg>
+              <span id="btn-label">Listen Now</span>
+            </a>
+            <div class="change-service">
+              <button onclick="resetService()">Change streaming service</button>
+            </div>
+          </div>
         </div>
 
         <!-- Rating section -->
@@ -1296,34 +1384,6 @@
             <p class="rating-sublabel" id="rating-sublabel"></p>
           </div>
           <div class="community-rating" id="community-rating"></div>
-        </div>
-
-        <!-- Streaming (grouped with rating) -->
-        <div id="view-pick">
-          <p class="picker-label">Where do you listen?</p>
-          <div class="service-grid">
-            <button class="service-btn" onclick="pickService('apple')">
-              <img src="logo-apple-music.svg" alt="Apple Music">
-              <span>Apple Music</span>
-            </button>
-            <button class="service-btn" onclick="pickService('spotify')">
-              <img src="logo-spotify.svg" alt="Spotify">
-              <span>Spotify</span>
-            </button>
-            <button class="service-btn" onclick="pickService('youtube')">
-              <img src="logo-youtube-music.svg" alt="YouTube Music">
-              <span>YouTube Music</span>
-            </button>
-          </div>
-        </div>
-        <div id="view-listen">
-          <a id="listen-link" class="listen-btn" target="_blank" rel="noopener">
-            <svg class="btn-icon" id="btn-icon" viewBox="0 0 24 24" fill="currentColor"></svg>
-            <span id="btn-label">Listen Now</span>
-          </a>
-          <div class="change-service">
-            <button onclick="resetService()">Change streaming service</button>
-          </div>
         </div>
 
         <!-- Community Metrics -->
@@ -1346,24 +1406,10 @@
             <p id="comment-filter-error" style="font-size:11px;color:var(--red);min-height:14px;margin:4px 0 0;"></p>
           </div>
           <div id="comments-list"></div>
+          <button class="open-pit-btn" onclick="switchTab('pit')">OPEN THE FULL PIT →</button>
         </div>
 
       </div><!-- /kf-info-card -->
-
-      <!-- Spotify Playlist Embed -->
-      <div class="spotify-embed-wrap kf-spotify">
-        <p class="section-label">THE PLAYLIST</p>
-        <iframe
-          src="https://open.spotify.com/embed/playlist/4mZFXJ8NgaKQ01SxZBdAAX?utm_source=generator&theme=0"
-          width="100%"
-          height="352"
-          frameBorder="0"
-          allowfullscreen=""
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
-          style="border-radius:12px;">
-        </iframe>
-      </div>
 
     </div><!-- /kf-right -->
 
