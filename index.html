@@ -1217,59 +1217,62 @@
       /* ── Compact everything for the viewport ── */
 
       /* Card padding */
-      .kf-art-card  { padding: 12px 14px; }
-      .kf-info-card { padding: 10px 14px; }
+      .kf-art-card  { padding: 10px 12px; }
+      .kf-info-card { padding: 8px 12px; }
+
+      /* kf-right gap between cards */
+      .kf-right { gap: 8px; }
 
       /* Album info */
-      .album-title  { font-size: 19px; margin-bottom: 1px; }
-      .album-artist { font-size: 13px; margin-bottom: 2px; }
-      .album-meta   { margin-bottom: 4px; gap: 6px; }
-      .tag  { font-size: 9px; padding: 2px 7px; }
-      .year { font-size: 11px; }
+      .album-title  { font-size: 18px; margin-bottom: 0; }
+      .album-artist { font-size: 12px; margin-bottom: 1px; }
+      .album-meta   { margin-bottom: 2px; gap: 5px; }
+      .tag  { font-size: 9px; padding: 2px 6px; }
+      .year { font-size: 10px; }
 
-      /* Rating — compact, no wasted height */
-      .rating-section   { padding: 6px 10px; margin-top: 0; }
-      .rating-label     { font-size: 9px; margin-bottom: 3px; }
-      .star-row         { gap: 2px; }
-      .star-btn         { font-size: 26px; }
-      .rating-sublabel  { font-size: 14px; }
-      .community-rating { font-size: 10px; margin-top: 2px; }
+      /* Album header row */
+      .album-header-row { margin-bottom: 2px; }
 
-      /* Album header row: title/artist/meta only */
-      .album-header-row { margin-bottom: 4px; }
+      /* Rating */
+      .rating-section   { padding: 5px 8px; margin-top: 0; }
+      .rating-label     { font-size: 9px; margin-bottom: 2px; }
+      .star-row         { gap: 1px; }
+      .star-btn         { font-size: 24px; }
+      .rating-sublabel  { font-size: 13px; }
+      .community-rating { font-size: 10px; margin-top: 1px; }
 
-      /* Metrics — 4 cols, tight cards */
-      .kf-info-card .metrics-wrap { margin-top: 4px; }
+      /* Metrics */
+      .kf-info-card .metrics-wrap { margin-top: 0; }
       .metrics-wrap .section-label { margin-bottom: 2px; font-size: 9px; }
-      .metrics-grid { grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 0; }
-      .metric-card   { padding: 5px 6px; border-radius: 7px; }
-      .metric-number { font-size: 18px; }
+      .metrics-grid { grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 0; }
+      .metric-card   { padding: 4px 5px; border-radius: 6px; }
+      .metric-number { font-size: 17px; }
       .metric-label  { font-size: 8px; margin-top: 1px; letter-spacing: 1px; }
 
-      /* Comments — tight */
-      .kf-info-card .comments-wrap { margin-top: 6px; }
+      /* Comments */
+      .kf-info-card .comments-wrap { margin-top: 4px; }
       .comments-wrap .section-label { margin-bottom: 2px; font-size: 9px; }
-      #comment-input { min-height: 36px; max-height: 50px; font-size: 12px; padding: 5px 10px; }
-      .comment-input-footer { margin-top: 3px; margin-bottom: 5px; }
-      .comment-entry { padding: 7px 10px; margin-bottom: 5px; border-radius: 7px; }
-      .comment-header { margin-bottom: 3px; gap: 6px; }
-      .comment-text { font-size: 12px; line-height: 1.4; }
-      .comment-time { font-size: 9px; margin-top: 2px; }
-      #comments-list { max-height: 240px; }
+      #comment-input { min-height: 34px; max-height: 48px; font-size: 12px; padding: 5px 10px; }
+      .comment-input-footer { margin-top: 2px; margin-bottom: 4px; }
+      .comment-entry { padding: 6px 9px; margin-bottom: 4px; border-radius: 6px; }
+      .comment-header { margin-bottom: 2px; gap: 5px; }
+      .comment-text { font-size: 12px; line-height: 1.35; }
+      .comment-time { font-size: 9px; margin-top: 1px; }
+      #comments-list { max-height: 220px; }
 
-      /* Open Full Pit link */
+      /* Full chat room button */
       .open-pit-btn {
         display: block; width: 100%;
         background: none; border: 1px solid rgba(176,16,16,0.4);
         color: var(--muted); font-size: 9px; letter-spacing: 2px;
         text-transform: uppercase; padding: 5px; cursor: pointer;
-        border-radius: 5px; margin-top: 6px;
+        border-radius: 5px; margin-top: 5px;
         transition: color 0.15s, border-color 0.15s;
       }
       .open-pit-btn:hover { color: var(--amber); border-color: var(--amber); }
 
-      /* Spotify — smallest embed */
-      .kf-spotify { margin-top: 6px; }
+      /* Spotify */
+      .kf-spotify { margin-top: 5px; }
       .kf-spotify iframe { height: 80px !important; }
       .kf-spotify .section-label { margin-bottom: 2px; font-size: 9px; }
 
