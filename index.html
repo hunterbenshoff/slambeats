@@ -82,16 +82,18 @@
     }
     .tab-user-btn {
       background: none;
-      border: 1px solid #b01010;
-      color: #e0e0e8;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #f0e6d3;
       font-family: 'Nosifer', cursive;
       font-size: 11px;
       padding: 4px 10px;
       cursor: pointer;
       white-space: nowrap;
       letter-spacing: 1px;
+      transition: color 0.15s, border-bottom-color 0.15s;
     }
-    .tab-user-btn:hover { background: rgba(176,16,16,0.15); }
+    .tab-user-btn:hover { color: var(--amber); border-bottom-color: var(--amber); }
 
     /* ── Profile card dropdown ───────────────────────────────── */
     #profile-card {
@@ -1085,8 +1087,8 @@
       /* Tab nav stops at 60vw — right 40vw is open for artwork */
       .tab-nav { position: sticky; top: 0; max-width: 60vw; }
 
-      /* Profile card: flush against the right edge of the album block */
-      #profile-card { right: 40vw; top: 0; }
+      /* Profile card: flush below tab nav, against album block edge */
+      #profile-card { right: 40vw; top: 41px; border-top: 1px solid #b01010; }
 
       /* All panels fill remaining height */
       .tab-panel {
@@ -1599,18 +1601,8 @@
 <!-- ── Username Modal ── -->
 <div id="username-modal" class="modal-overlay" style="display:none">
   <div class="modal-box">
-    <!-- Register view -->
-    <div id="modal-register">
-      <p class="modal-title">CHOOSE YOUR HANDLE</p>
-      <p class="modal-sub">No real name. No email. Works on any device with your PIN.</p>
-      <input type="text" id="username-input" maxlength="20" placeholder="your handle" autocomplete="off">
-      <input type="password" id="pin-input" maxlength="6" placeholder="4-6 digit PIN" autocomplete="off" inputmode="numeric">
-      <p id="username-error" class="modal-error"></p>
-      <button id="username-confirm-btn" onclick="confirmUsername()">ENTER THE PIT</button>
-      <p class="modal-switch">Already have a handle? <button onclick="showLogin()" class="modal-link-btn">Log in</button></p>
-    </div>
-    <!-- Login view -->
-    <div id="modal-login" style="display:none">
+    <!-- Login view (default) -->
+    <div id="modal-login">
       <p class="modal-title">WELCOME BACK</p>
       <p class="modal-sub">Enter your handle and PIN to restore your identity.</p>
       <input type="text" id="login-username-input" maxlength="20" placeholder="your handle" autocomplete="off">
@@ -1622,6 +1614,16 @@
       </label>
       <button onclick="confirmLogin()">RESTORE IDENTITY</button>
       <p class="modal-switch">New here? <button onclick="showRegister()" class="modal-link-btn">Create handle</button></p>
+    </div>
+    <!-- Register view -->
+    <div id="modal-register" style="display:none">
+      <p class="modal-title">CHOOSE YOUR HANDLE</p>
+      <p class="modal-sub">No real name. No email. Works on any device with your PIN.</p>
+      <input type="text" id="username-input" maxlength="20" placeholder="your handle" autocomplete="off">
+      <input type="password" id="pin-input" maxlength="6" placeholder="4-6 digit PIN" autocomplete="off" inputmode="numeric">
+      <p id="username-error" class="modal-error"></p>
+      <button id="username-confirm-btn" onclick="confirmUsername()">ENTER THE PIT</button>
+      <p class="modal-switch">Already have a handle? <button onclick="showLogin()" class="modal-link-btn">Log in</button></p>
     </div>
   </div>
 </div>
@@ -2350,20 +2352,13 @@ function requireUsername(callback) {
 
 function openUsernameModal() {
     document.getElementById('username-modal').style.display = 'flex';
-    // If they've registered before, go straight to login and pre-fill handle
-    if (localStorage.getItem('slambeats_has_account')) {
-        showLogin();
-        const saved = localStorage.getItem('slambeats_last_username');
-        if (saved) {
-            document.getElementById('login-username-input').value = saved;
-            // If remember me was checked, pre-fill PIN too
-            const savedPin = localStorage.getItem('slambeats_remember_pin');
-            if (savedPin) {
-                document.getElementById('login-pin-input').value = savedPin;
-            }
-        }
-    } else {
-        showRegister();
+    // Default to login — most people have an account already
+    showLogin();
+    const saved = localStorage.getItem('slambeats_last_username');
+    if (saved) {
+        document.getElementById('login-username-input').value = saved;
+        const savedPin = localStorage.getItem('slambeats_remember_pin');
+        if (savedPin) document.getElementById('login-pin-input').value = savedPin;
     }
 }
 
@@ -3107,6 +3102,11 @@ document.addEventListener('click', function(e) {
 
 let profileCardOpen = false;
 function toggleProfileCard() {
+    // Not logged in → skip dropdown, go straight to login modal
+    if (!getUsername() || !getUserId()) {
+        openUsernameModal();
+        return;
+    }
     const card = document.getElementById('profile-card');
     profileCardOpen = !profileCardOpen;
     card.style.display = profileCardOpen ? 'block' : 'none';
