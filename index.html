@@ -466,9 +466,26 @@
     .dist-row  { display:flex; width:100%; height:5px; border-radius:2px; overflow:hidden; margin-top:6px; gap:2px; }
     .dist-bar  { height:100%; border-radius:1px; min-width:2px; }
 
-    /* ── States ──────────────────────────────────────────────── */
-    #view-pick  { display: none; }
-    #view-listen { display: none; }
+    /* ── Playlist service selector ───────────────────────────── */
+    .playlist-svc-bar {
+      display: flex; align-items: center; gap: 10px; padding-bottom: 8px;
+    }
+    .psvc-btn {
+      background: none; border: none; cursor: pointer; padding: 0;
+      opacity: 0.3; transition: opacity 0.2s, transform 0.15s;
+    }
+    .psvc-btn img { width: 30px; height: 30px; border-radius: 8px; display: block; }
+    .psvc-btn:hover { opacity: 0.65; transform: scale(1.08); }
+    .psvc-btn.psvc-selected { opacity: 1; }
+    .psvc-btn.psvc-selected:hover { opacity: 1; transform: scale(1.05); }
+    /* Follow link at bottom of playlist card */
+    .follow-playlist-link {
+      display: block; text-align: center;
+      font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+      color: #1db954; text-decoration: none;
+      margin-top: 8px; opacity: 0.7; transition: opacity 0.15s;
+    }
+    .follow-playlist-link:hover { opacity: 1; }
 
     /* ── Archive panel ───────────────────────────────────────── */
     .panel-heading {
@@ -1181,13 +1198,6 @@
           0 0 10px rgba(139,20,20,0.65),
           0 2px 4px rgba(0,0,0,0.95);
       }
-      .kf-underbar-svc { flex-shrink: 0; display: flex; align-items: center; }
-      .kf-underbar-svc #view-pick .picker-label { display: none; }
-      .kf-underbar-svc #view-pick .service-grid { gap: 6px; padding: 0; justify-content: flex-end; }
-      .kf-underbar-svc #view-pick .service-btn img { width: 26px; height: 26px; }
-      .kf-underbar-svc #view-selected { width: 26px; height: 26px; }
-      .kf-underbar-svc #view-selected img { width: 26px; height: 26px; border-radius: 7px; opacity: 0.15; transition: opacity 0.2s; }
-      .kf-underbar-svc #view-selected:hover img { opacity: 1; }
       /* Hide the tab-nav date — the card date replaces it */
       #date-display { display: none; }
       /* Artwork: never crop — flex-shrink:0 keeps it square, contain shows full cover */
@@ -1280,12 +1290,6 @@
         margin-bottom: 4px;
       }
       .album-header-text { flex: 1; min-width: 0; }
-      .album-header-row #view-pick { flex-shrink: 0; padding-top: 2px; }
-      .album-header-row #view-pick .picker-label { display: none; }
-      .album-header-row #view-pick .service-grid { gap: 6px; padding: 0; justify-content: flex-end; }
-      .album-header-row #view-pick .service-btn img { width: 28px; height: 28px; }
-      .album-header-row #view-selected { width: 28px; height: 28px; padding-top: 2px; }
-      .album-header-row #view-selected img { width: 28px; height: 28px; border-radius: 7px; }
 
       /* Top row: badges left, info+rating right */
       .kf-info-top-row {
@@ -1459,33 +1463,28 @@
 
         <div class="kf-underbar">
           <p class="artwork-date" id="artwork-date"></p>
-          <div class="kf-underbar-svc">
-            <div id="view-pick">
-              <div class="service-grid">
-                <button class="service-btn" onclick="pickService('spotify')"><img src="logo-spotify.svg" alt="Spotify"><span>Spotify</span></button>
-                <button class="service-btn" onclick="pickService('youtube')"><img src="logo-youtube-music.svg" alt="YouTube Music"><span>YouTube Music</span></button>
-                <!-- Apple Music: coming soon -->
-                <!-- <button class="service-btn" onclick="pickService('apple')"><img src="logo-apple-music.svg" alt="Apple Music"><span>Apple Music</span></button> -->
-              </div>
-            </div>
-            <div id="view-selected" onclick="resetService()" title="Tap to change service">
-              <img id="selected-svc-icon" src="" alt="">
-            </div>
-          </div>
         </div>
 
       </div><!-- /kf-art-card -->
 
       <!-- ── Spotify playlist embed + follow CTA ── -->
       <div class="kf-playlist-wrap album-card">
-        <a class="follow-playlist-btn" href="https://open.spotify.com/playlist/4mZFXJ8NgaKQ01SxZBdAAX?si=73b77b3f08b141d5" target="_blank" rel="noopener">
-          FOLLOW THE PLAYLIST ↗
-        </a>
+        <div class="playlist-svc-bar">
+          <button class="psvc-btn" data-key="spotify" onclick="pickService('spotify')" title="Spotify">
+            <img src="logo-spotify.svg" alt="Spotify">
+          </button>
+          <button class="psvc-btn" data-key="youtube" onclick="pickService('youtube')" title="YouTube Music">
+            <img src="logo-youtube-music.svg" alt="YouTube Music">
+          </button>
+        </div>
         <iframe class="spotify-embed"
           src="https://open.spotify.com/embed/playlist/4mZFXJ8NgaKQ01SxZBdAAX?utm_source=generator&theme=0"
           frameborder="0"
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
           loading="lazy"></iframe>
+        <a class="follow-playlist-link" href="https://open.spotify.com/playlist/4mZFXJ8NgaKQ01SxZBdAAX?si=73b77b3f08b141d5" target="_blank" rel="noopener">
+          Follow the playlist on Spotify ↗
+        </a>
       </div><!-- /kf-playlist-wrap -->
 
     </div><!-- /kf-left -->
@@ -3207,25 +3206,16 @@ document.addEventListener('click', function(e) {
 // SERVICE SELECTION
 // ══════════════════════════════════════════════════════════════
 function artworkClick() {
-    const svcKey = localStorage.getItem('dailyalbum_service');
-    if (svcKey && SERVICES[svcKey]) {
-        const [album, artist] = getAlbumForDate(new Date());
-        window.open(SERVICES[svcKey].url(album, artist), '_blank', 'noopener');
-    } else {
-        // No service chosen yet — highlight the picker
-        const picker = document.getElementById('view-pick');
-        if (picker) {
-            picker.style.display = 'block';
-            picker.style.animation = 'none';
-            picker.offsetHeight; // reflow
-            picker.style.animation = 'pulseHighlight 0.6s ease';
-        }
-    }
+    // Always funnel to the Spotify playlist
+    window.open('https://open.spotify.com/playlist/4mZFXJ8NgaKQ01SxZBdAAX?si=73b77b3f08b141d5', '_blank', 'noopener');
 }
 
 function pickService(serviceKey) {
+    // Toggle: clicking the already-selected service deselects it
+    const current = localStorage.getItem('dailyalbum_service');
+    if (current === serviceKey) { resetService(); return; }
     localStorage.setItem('dailyalbum_service', serviceKey);
-    // Save service preference to Supabase if logged in
+    // Persist preference to Supabase if logged in
     if (getUsername()) {
         fetch(`${SUPABASE_URL}/rest/v1/users?user_id=eq.${getUserId()}`, {
             method: 'PATCH',
@@ -3233,24 +3223,18 @@ function pickService(serviceKey) {
             body: JSON.stringify({ preferred_service: serviceKey })
         }).catch(() => {});
     }
-    const [album, artist] = getAlbumForDate(new Date());
     showListenView(serviceKey);
-    window.open(SERVICES[serviceKey].url(album, artist), '_blank');
 }
 
 function showListenView(serviceKey) {
-    const svc = SERVICES[serviceKey];
-    document.getElementById('view-pick').style.display     = 'none';
-    document.getElementById('view-selected').style.display = 'block';
-    const icon = document.getElementById('selected-svc-icon');
-    icon.src = svc.img;
-    icon.alt = svc.name;
+    document.querySelectorAll('.psvc-btn').forEach(btn => {
+        btn.classList.toggle('psvc-selected', btn.dataset.key === serviceKey);
+    });
 }
 
 function resetService() {
     localStorage.removeItem('dailyalbum_service');
-    document.getElementById('view-selected').style.display = 'none';
-    document.getElementById('view-pick').style.display     = 'block';
+    document.querySelectorAll('.psvc-btn').forEach(btn => btn.classList.remove('psvc-selected'));
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -3281,13 +3265,9 @@ async function init() {
         document.getElementById('artwork-placeholder').style.display = 'none';
     }
 
-    // Service
+    // Service — apply saved selection (all icons always visible, selected one lit)
     const saved = localStorage.getItem('dailyalbum_service');
-    if (saved && SERVICES[saved]) {
-        showListenView(saved);
-    } else {
-        document.getElementById('view-pick').style.display = 'block';
-    }
+    if (saved && SERVICES[saved]) showListenView(saved);
 
     // Rating
     const savedRating = getRatingForDate(today);
