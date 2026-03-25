@@ -50,6 +50,12 @@
     .tab-right-cluster { margin-left: auto; display: flex; align-items: center; gap: 10px; padding-right: 4px; }
     .tab-user-btn { background: none; border: none; border-bottom: 2px solid transparent; color: #f0e6d3; font-family: 'Nosifer', cursive; font-size: 11px; padding: 4px 10px; cursor: pointer; white-space: nowrap; letter-spacing: 1px; transition: color 0.15s, border-bottom-color 0.15s; }
     .tab-user-btn:hover { color: #d4a840; border-bottom-color: #d4a840; }
+    .mini-profile-card { display: none; position: fixed; z-index: 100; background: rgba(18,3,6,0.98); border: 1px solid rgba(180,20,20,0.45); border-top: none; border-radius: 0 0 8px 8px; padding: 14px 18px; min-width: 160px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+    .mini-profile-name { font-family: 'Nosifer', cursive; font-size: 13px; color: #f0e6d3; letter-spacing: 1px; margin-bottom: 10px; }
+    .mini-profile-link { display: block; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 4px 0; border-bottom: 1px solid rgba(180,20,20,0.15); margin-bottom: 8px; }
+    .mini-profile-link:hover { color: var(--amber); }
+    .mini-profile-logout { background: none; border: none; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(180,20,20,0.6); cursor: pointer; padding: 0; }
+    .mini-profile-logout:hover { color: #c01818; }
 
     /* ── Mobile nav ── */
     .mobile-nav { display: none; }
@@ -87,9 +93,14 @@
   <button class="tab-btn active">CRYPT</button>
   <button class="tab-btn" onclick="window.location.href='store.html'">Store</button>
   <div class="tab-right-cluster">
-    <button class="tab-user-btn" id="tab-user-btn" onclick="window.location.href='index.html'">LOG IN</button>
+    <button class="tab-user-btn" id="tab-user-btn" onclick="toggleMiniProfile(event)">LOG IN</button>
   </div>
 </nav>
+<div class="mini-profile-card" id="mini-profile-card">
+  <p class="mini-profile-name" id="mini-profile-name"></p>
+  <a class="mini-profile-link" href="index.html">KILLING FLOOR →</a>
+  <button class="mini-profile-logout" onclick="miniLogout()">LOG OUT</button>
+</div>
 
 <nav class="mobile-nav">
   <div class="mobile-menu-bar">
@@ -123,6 +134,36 @@
 const _u = localStorage.getItem('slambeats_username');
 const _btn = document.getElementById('tab-user-btn');
 if (_btn && _u) _btn.textContent = _u.toUpperCase();
+
+let _miniOpen = false;
+function toggleMiniProfile(e) {
+  const u = localStorage.getItem('slambeats_username');
+  if (!u) { window.location.href = 'index.html'; return; }
+  const card = document.getElementById('mini-profile-card');
+  _miniOpen = !_miniOpen;
+  if (_miniOpen) {
+    document.getElementById('mini-profile-name').textContent = u.toUpperCase();
+    const btn = document.getElementById('tab-user-btn');
+    const r = btn.getBoundingClientRect();
+    card.style.top = r.bottom + 'px';
+    card.style.right = (window.innerWidth - r.right) + 'px';
+    card.style.display = 'block';
+  } else {
+    card.style.display = 'none';
+  }
+}
+function miniLogout() {
+  localStorage.removeItem('slambeats_username');
+  localStorage.removeItem('slambeats_uid');
+  localStorage.removeItem('slambeats_joined');
+  location.reload();
+}
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('mini-profile-card').contains(e.target) && e.target.id !== 'tab-user-btn') {
+    document.getElementById('mini-profile-card').style.display = 'none';
+    _miniOpen = false;
+  }
+});
 </script>
 </body>
 </html>
