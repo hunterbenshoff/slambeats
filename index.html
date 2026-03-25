@@ -2259,7 +2259,7 @@ function applyStarState(rating) {
         s.classList.remove('lit');
     });
     const label = document.getElementById('rating-sublabel');
-    label.textContent = r ? `${RATING_DESCS[r]}  (${r}/5)  ·  saved ✓` : '';
+    label.textContent = r ? RATING_DESCS[r] : '';
 }
 
 async function loadCommunityRating() {
