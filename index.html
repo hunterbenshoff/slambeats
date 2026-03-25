@@ -1085,7 +1085,7 @@
       .tab-nav { position: sticky; top: 0; max-width: 60vw; }
 
       /* Profile card: flush against the right edge of the album block */
-      #profile-card { right: 40vw; top: auto; }
+      #profile-card { right: 40vw; top: 0; }
 
       /* All panels fill remaining height */
       .tab-panel {
@@ -1171,9 +1171,11 @@
       .kf-underbar-svc { flex-shrink: 0; display: flex; align-items: center; }
       .kf-underbar-svc #view-pick .picker-label { display: none; }
       .kf-underbar-svc #view-pick .service-grid { gap: 6px; padding: 0; justify-content: flex-end; }
-      .kf-underbar-svc #view-pick .service-btn img { width: 26px; height: 26px; }
+      .kf-underbar-svc #view-pick .service-btn img { width: 26px; height: 26px; opacity: 0.12; transition: opacity 0.2s; }
+      .kf-underbar-svc #view-pick .service-btn:hover img { opacity: 1; }
       .kf-underbar-svc #view-selected { width: 26px; height: 26px; }
-      .kf-underbar-svc #view-selected img { width: 26px; height: 26px; border-radius: 7px; }
+      .kf-underbar-svc #view-selected img { width: 26px; height: 26px; border-radius: 7px; opacity: 0.12; transition: opacity 0.2s; }
+      .kf-underbar-svc #view-selected:hover img { opacity: 1; }
       /* Hide the tab-nav date — the card date replaces it */
       #date-display { display: none; }
       /* Artwork: never crop — flex-shrink:0 keeps it square, contain shows full cover */
