@@ -48,6 +48,8 @@
     .tab-btn:hover  { color: var(--amber); }
     .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
     .tab-right-cluster { margin-left: auto; display: flex; align-items: center; gap: 10px; padding-right: 4px; }
+    .tab-user-btn { background: none; border: none; border-bottom: 2px solid transparent; color: #f0e6d3; font-family: 'Nosifer', cursive; font-size: 11px; padding: 4px 10px; cursor: pointer; white-space: nowrap; letter-spacing: 1px; transition: color 0.15s, border-bottom-color 0.15s; }
+    .tab-user-btn:hover { color: #d4a840; border-bottom-color: #d4a840; }
 
     /* ── Mobile nav ── */
     .mobile-nav { display: none; }
@@ -87,7 +89,9 @@
   <button class="tab-btn" onclick="window.location.href='slamletterr.html'">The SlamLetter</button>
   <button class="tab-btn" onclick="window.location.href='crypt.html'">CRYPT</button>
   <button class="tab-btn active">Store</button>
-  <div class="tab-right-cluster"></div>
+  <div class="tab-right-cluster">
+    <button class="tab-user-btn" id="tab-user-btn" onclick="window.location.href='index.html'">LOG IN</button>
+  </div>
 </nav>
 
 <nav class="mobile-nav">
@@ -134,5 +138,10 @@
   </div>
 
 </div>
+<script>
+const _u = localStorage.getItem('slambeats_username');
+const _btn = document.getElementById('tab-user-btn');
+if (_btn && _u) _btn.textContent = _u.toUpperCase();
+</script>
 </body>
 </html>
