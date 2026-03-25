@@ -456,12 +456,12 @@
       min-height: 36px;
     }
     .community-rating {
-      margin-top: 6px; display: none; text-align: right;
+      margin-top: 6px; display: block; text-align: right;
     }
     .cr-summary { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-bottom: 4px; }
     .cr-skulls { color: #cc0000; font-size: 16px; filter: drop-shadow(0 0 4px rgba(200,0,0,0.6)); letter-spacing: 2px; }
     .cr-text   { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; margin-left: 6px; }
-    .dist-row  { display:flex; height:4px; border-radius:2px; overflow:hidden; margin-top:6px; gap:1px; }
+    .dist-row  { display:flex; width:100%; height:5px; border-radius:2px; overflow:hidden; margin-top:6px; gap:2px; }
     .dist-bar  { height:100%; border-radius:1px; min-width:2px; }
 
     /* ── States ──────────────────────────────────────────────── */
@@ -1187,6 +1187,7 @@
         cursor: pointer;
         position: relative;
         flex-shrink: 0;
+        margin-bottom: 0;
       }
       .kf-art-card .artwork-wrap img { object-fit: contain; background: #0a0306; }
       .kf-art-card .artwork-wrap .artwork-placeholder { font-size: 100px; }
@@ -2273,15 +2274,17 @@ async function loadCommunityRating() {
         const dist = [1,2,3,4,5].map(v => {
             const cnt = d.ratings.filter(r => r.rating === v).length;
             const pct = Math.round((cnt / d.count) * 100);
-            return `<div class="dist-bar" title="${v}☠: ${cnt}" style="width:${Math.max(pct,2)}%;background:rgba(200,0,0,${0.25 + v*0.15})"></div>`;
+            return `<div class="dist-bar" title="${v}☠: ${cnt}" style="flex:${Math.max(pct,2)};background:rgba(200,0,0,${0.25 + v*0.15})"></div>`;
         }).join('');
-        el.innerHTML = `
-          <div class="cr-summary"><span class="cr-text">${countLabel}</span></div>
-          <div class="dist-row">${dist}</div>`;
-        el.style.display = 'block';
+        el.innerHTML = `<div class="cr-summary"><span class="cr-text">${countLabel}</span></div><div class="dist-row">${dist}</div>`;
     } else {
-        el.style.display = 'none';
+        // placeholder bars — equal weight, dim
+        const placeholder = [1,2,3,4,5].map(v =>
+            `<div class="dist-bar" style="flex:1;background:rgba(180,20,20,${0.08 + v*0.04})"></div>`
+        ).join('');
+        el.innerHTML = `<div class="dist-row">${placeholder}</div>`;
     }
+    el.style.display = 'block';
 }
 
 async function setRating(val) {
