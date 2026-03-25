@@ -1092,8 +1092,8 @@
       /* Tab nav stops at 60vw — right 40vw is open for artwork */
       .tab-nav { position: sticky; top: 0; max-width: 60vw; }
 
-      /* Profile card: positioned dynamically by JS below the profile button */
-      #profile-card { border-top: 1px solid #b01010; }
+      /* Profile card: true dropdown — no top border so it flows from the nav */
+      #profile-card { border-top: none; border-top-left-radius: 0; border-top-right-radius: 0; }
 
       /* All panels fill remaining height */
       .tab-panel {
@@ -3140,13 +3140,15 @@ function toggleProfileCard() {
     const card = document.getElementById('profile-card');
     profileCardOpen = !profileCardOpen;
     if (profileCardOpen) {
-        // Position card flush below the profile button, right-aligned to it
+        // True dropdown: align top to nav bar bottom, right to nav bar right edge
+        const nav = document.querySelector('.tab-nav');
         const btn = document.getElementById('tab-user-btn') || document.getElementById('mobile-user-btn');
-        if (btn) {
-            const r = btn.getBoundingClientRect();
-            card.style.top  = r.bottom + 'px';
-            card.style.right = (window.innerWidth - r.right) + 'px';
-            card.style.left  = 'auto';
+        const anchor = nav || btn;
+        if (anchor) {
+            const r = anchor.getBoundingClientRect();
+            card.style.top   = r.bottom + 'px';
+            card.style.right  = (window.innerWidth - r.right) + 'px';
+            card.style.left   = 'auto';
         }
         card.style.display = 'block';
         openProfile();
