@@ -1087,8 +1087,8 @@
       /* Tab nav stops at 60vw — right 40vw is open for artwork */
       .tab-nav { position: sticky; top: 0; max-width: 60vw; }
 
-      /* Profile card: flush below tab nav, against album block edge */
-      #profile-card { right: 40vw; top: 41px; border-top: 1px solid #b01010; }
+      /* Profile card: positioned dynamically by JS below the profile button */
+      #profile-card { border-top: 1px solid #b01010; }
 
       /* All panels fill remaining height */
       .tab-panel {
@@ -1130,7 +1130,7 @@
         align-items: stretch;
         justify-content: flex-start;
         gap: 10px;
-        padding: 80px 16px 20px;
+        padding: 80px 16px 20px 0;
         z-index: 2;
         overflow: clip;
         order: unset;
@@ -1145,9 +1145,19 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 10px;
         overflow: visible;
+        position: relative;
         /* inherits .album-card background, border, border-radius, padding */
+      }
+      /* Underbar pinned to bottom of art card so only artwork participates in centering */
+      .kf-art-card .kf-underbar {
+        position: absolute;
+        bottom: 14px;
+        left: 14px;
+        right: 14px;
+        width: auto;
+        margin-top: 0;
+        flex-shrink: 0;
       }
       /* Underbar: date left, service right, flush with artwork edges */
       .kf-underbar {
@@ -1244,7 +1254,7 @@
       /* ── Compact everything for the viewport ── */
 
       /* Card padding */
-      .kf-art-card  { padding: 12px 14px; }
+      .kf-art-card  { padding: 12px 14px 56px; } /* extra bottom for abs underbar */
       .kf-info-card { padding: 10px 14px; }
 
       /* Album info */
@@ -2471,7 +2481,7 @@ async function openProfile() {
     document.getElementById('profile-card-logged-out').style.display = 'none';
     document.getElementById('profile-card-logged-in').style.display  = 'block';
     document.getElementById('pc-handle').textContent = username.toUpperCase();
-    document.getElementById('pc-since').textContent  = 'Member of The Pit';
+    document.getElementById('pc-since').textContent  = 'Loading…';
 
     // also update old panel if exists
     const pli = document.getElementById('profile-logged-in');
@@ -2485,12 +2495,21 @@ async function openProfile() {
 
     // Fetch stats from Supabase
     try {
-        const [ratingsRes, commentsRes] = await Promise.all([
+        const [ratingsRes, commentsRes, userRes] = await Promise.all([
             fetch(`${SUPABASE_URL}/rest/v1/ratings?user_id=eq.${encodeURIComponent(uid)}&select=rating,date`, { headers: SB_HEADERS }),
             fetch(`${SUPABASE_URL}/rest/v1/comments?user_id=eq.${encodeURIComponent(uid)}&select=id`, { headers: SB_HEADERS }),
+            fetch(`${SUPABASE_URL}/rest/v1/users?user_id=eq.${encodeURIComponent(uid)}&select=created_at`, { headers: SB_HEADERS }),
         ]);
         const ratings  = await ratingsRes.json();
         const comments = await commentsRes.json();
+        const userData = await userRes.json();
+        // Show actual member since date
+        if (Array.isArray(userData) && userData.length > 0 && userData[0].created_at) {
+            const joined = new Date(userData[0].created_at);
+            const sinceStr = 'Since ' + joined.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            const pcSince = document.getElementById('pc-since');
+            if (pcSince) pcSince.textContent = sinceStr;
+        }
 
         const totalRatings  = Array.isArray(ratings)  ? ratings.length  : 0;
         const totalComments = Array.isArray(comments) ? comments.length : 0;
@@ -2660,6 +2679,8 @@ async function confirmLogin() {
 function closeModalAndProceed() {
     document.getElementById('username-modal').style.display = 'none';
     if (window._usernameCallback) { window._usernameCallback(); window._usernameCallback = null; }
+    // Update nav button immediately — no refresh needed
+    updateUserBtn();
     // Light up the profile button when logged in
     const btn = document.getElementById('profile-btn');
     if (btn) btn.style.color = 'rgba(200,20,20,0.75)';
@@ -3149,15 +3170,27 @@ document.addEventListener('click', function(e) {
 
 let profileCardOpen = false;
 function toggleProfileCard() {
-    // Not logged in → skip dropdown, go straight to login modal
+    // Not logged in → skip dropdown, go straight to login modal (centered overlay)
     if (!getUsername() || !getUserId()) {
         openUsernameModal();
         return;
     }
     const card = document.getElementById('profile-card');
     profileCardOpen = !profileCardOpen;
-    card.style.display = profileCardOpen ? 'block' : 'none';
-    if (profileCardOpen) openProfile();
+    if (profileCardOpen) {
+        // Position card flush below the profile button, right-aligned to it
+        const btn = document.getElementById('tab-user-btn') || document.getElementById('mobile-user-btn');
+        if (btn) {
+            const r = btn.getBoundingClientRect();
+            card.style.top  = r.bottom + 'px';
+            card.style.right = (window.innerWidth - r.right) + 'px';
+            card.style.left  = 'auto';
+        }
+        card.style.display = 'block';
+        openProfile();
+    } else {
+        card.style.display = 'none';
+    }
 }
 
 // Close profile card when clicking outside
