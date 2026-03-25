@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>slambeats.kill — Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nosifer&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    @font-face { font-family: 'DeardorfDrip'; src: url('fonts/DeardorfDrip.otf') format('opentype'); font-display: swap; }
+    @font-face { font-family: 'Cingire'; src: url('fonts/Cingire.ttf') format('truetype'); font-display: swap; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red: #c01818; --blood: #b01010; --muted: #8a7060;
+      --sub: #c0a890; --card: rgba(28,4,8,0.97);
+      --cborder: rgba(180,20,20,0.45); --amber: #d4a840;
+    }
+    body {
+      background-color: #0a0305;
+      background-image:
+        repeating-linear-gradient(45deg,  rgba(60,5,10,0.18) 0px, rgba(60,5,10,0.18) 2px, transparent 2px, transparent 12px),
+        repeating-linear-gradient(-45deg, rgba(60,5,10,0.18) 0px, rgba(60,5,10,0.18) 2px, transparent 2px, transparent 12px);
+      color: #f0e6d3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      min-height: 100svh;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      width: 100%; display: flex; flex-direction: column;
+      align-items: flex-start; padding: 0;
+      background: url('banner.gif?v=22') center center / cover no-repeat;
+      border-top: 3px solid #b01010; border-bottom: 3px solid #b01010;
+    }
+    .header-logo { display: block; width: min(640px, 85vw); height: auto; margin: 0; }
+
+    /* ── Desktop tab nav ── */
+    .tab-nav {
+      position: sticky; top: 0; z-index: 25;
+      display: flex; background: rgba(8,2,4,0.98);
+      backdrop-filter: blur(8px);
+      border-bottom: 2px solid rgba(176,16,16,0.55);
+      padding: 0 8px; overflow-x: auto; scrollbar-width: none;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      background: none; border: none; color: var(--muted);
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; padding: 13px 12px; cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s; white-space: nowrap; flex-shrink: 0;
+    }
+    .tab-btn:hover { color: var(--amber); }
+    .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+    .tab-right-cluster { margin-left: auto; display: flex; align-items: center; gap: 10px; padding-right: 4px; }
+    .tab-user-btn {
+      background: none; border: 1px solid rgba(176,16,16,0.4); color: var(--muted);
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; padding: 5px 10px; cursor: pointer;
+      border-radius: 3px; transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-user-btn:hover { color: var(--amber); border-color: var(--amber); }
+
+    /* ── Mobile nav ── */
+    .mobile-nav { display: none; }
+    @media (max-width: 768px) {
+      .tab-nav { display: none; }
+      .mobile-nav { display: block; position: sticky; top: 0; z-index: 25; background: rgba(8,2,4,0.98); border-bottom: 2px solid rgba(176,16,16,0.55); }
+      .mobile-menu-bar { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 46px; }
+      .mobile-active-tab { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--amber); }
+      .mobile-menu-toggle { background: none; border: 1px solid rgba(176,16,16,0.5); color: var(--muted); font-size: 18px; width: 32px; height: 32px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+      .mobile-dropdown { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+      .mobile-dropdown.open { max-height: 400px; }
+      .mobile-tab-btn { background: none; border: none; border-bottom: 1px solid rgba(180,20,20,0.2); color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 14px 16px; cursor: pointer; width: 100%; text-align: left; transition: color 0.15s, background 0.15s; }
+      .mobile-tab-btn:hover, .mobile-tab-btn.active { color: var(--amber); background: rgba(176,16,16,0.08); }
+    }
+
+    /* ── Page content ── */
+    .page-content { max-width: 720px; margin: 0 auto; padding: 32px 24px 60px; }
+
+    /* ── Not logged in gate ── */
+    .gate-wrap {
+      text-align: center; padding: 80px 20px;
+    }
+    .gate-title {
+      font-family: 'Nosifer', cursive;
+      font-size: 18px; color: rgba(180,20,20,0.7);
+      margin-bottom: 20px; letter-spacing: 2px;
+    }
+    .gate-btn {
+      background: var(--red); color: #fff; border: none;
+      padding: 13px 28px; font-size: 11px; font-weight: 800;
+      letter-spacing: 2px; cursor: pointer; border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .gate-btn:hover { background: #a01010; }
+
+    /* ── Profile header ── */
+    .profile-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 16px; margin-bottom: 28px; padding-bottom: 24px;
+      border-bottom: 1px solid rgba(180,20,20,0.2);
+      flex-wrap: wrap;
+    }
+    .profile-header-left { flex: 1; min-width: 0; }
+    .profile-username {
+      font-family: 'Nosifer', cursive;
+      color: #9b1a1a;
+      text-shadow:
+        0 0 10px rgba(139,20,20,0.65),
+        0 2px 4px rgba(0,0,0,0.95);
+      filter: drop-shadow(0 4px 6px rgba(120,20,20,0.35));
+      font-size: 26px; line-height: 1.2;
+      margin-bottom: 8px;
+      word-break: break-all;
+    }
+    .profile-since {
+      font-size: 12px; color: var(--muted); letter-spacing: 0.5px;
+    }
+    .logout-btn {
+      background: transparent; border: 1px solid rgba(180,20,20,0.4);
+      color: var(--muted); padding: 9px 16px; font-size: 10px;
+      font-weight: 700; letter-spacing: 2px; cursor: pointer;
+      border-radius: 3px; text-transform: uppercase;
+      transition: all 0.2s; white-space: nowrap; align-self: flex-start;
+    }
+    .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 10px; margin-bottom: 28px;
+    }
+    @media (max-width: 600px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--cborder);
+      border-radius: 8px; padding: 16px 12px; text-align: center;
+    }
+    .stat-number {
+      font-size: 28px; font-weight: 900; color: #f0e6d3;
+      line-height: 1; margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted);
+    }
+
+    /* ── Section heading ── */
+    .section-heading {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--red);
+      margin-bottom: 14px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(180,20,20,0.2);
+    }
+
+    /* ── Badges ── */
+    .badges-section { margin-bottom: 32px; }
+    .badges-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+    .badge-pill {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      padding: 5px 12px; border-radius: 20px; text-transform: uppercase;
+      background: rgba(192,24,24,0.18); color: var(--amber);
+      border: 1px solid rgba(192,24,24,0.4);
+    }
+    .badge-locked {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      padding: 5px 12px; border-radius: 20px; text-transform: uppercase;
+      background: rgba(255,255,255,0.03); color: rgba(138,112,96,0.35);
+      border: 1px solid rgba(138,112,96,0.15);
+    }
+    .no-badges-msg { font-size: 12px; color: var(--muted); }
+
+    /* ── Rating history ── */
+    .ratings-section { margin-bottom: 32px; }
+    .rating-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0; border-bottom: 1px solid rgba(180,20,20,0.1);
+    }
+    .rating-row:last-child { border-bottom: none; }
+    .rating-date {
+      font-size: 10px; color: var(--muted); letter-spacing: 0.5px;
+      white-space: nowrap; min-width: 70px;
+    }
+    .rating-album-info { flex: 1; min-width: 0; }
+    .rating-album { font-size: 13px; font-weight: 700; color: #f0e6d3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rating-artist { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rating-skulls { font-size: 14px; white-space: nowrap; color: #c01818; flex-shrink: 0; }
+    .ratings-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 40px 0; }
+    .ratings-loading { font-size: 12px; color: var(--muted); text-align: center; padding: 32px 0; letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <img src="slambeatsdotkill-logo.png?v=2" alt="slambeats.kill" class="header-logo">
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn" onclick="window.location.href='index.html'">KILLING FLOOR</button>
+  <button class="tab-btn" onclick="window.location.href='slamletterr.html'">The SlamLetter</button>
+  <button class="tab-btn" onclick="window.location.href='crypt.html'">CRYPT</button>
+  <button class="tab-btn" onclick="window.location.href='store.html'">Store</button>
+  <div class="tab-right-cluster">
+    <button class="tab-user-btn" id="tab-user-btn"></button>
+  </div>
+</nav>
+
+<nav class="mobile-nav">
+  <div class="mobile-menu-bar">
+    <span class="mobile-active-tab" id="mobile-active-label">PROFILE</span>
+    <button class="mobile-menu-toggle" onclick="this.closest('.mobile-nav').querySelector('.mobile-dropdown').classList.toggle('open')">☰</button>
+  </div>
+  <div class="mobile-dropdown">
+    <button class="mobile-tab-btn" onclick="window.location.href='index.html'">KILLING FLOOR</button>
+    <button class="mobile-tab-btn" onclick="window.location.href='slamletterr.html'">The SlamLetter</button>
+    <button class="mobile-tab-btn" onclick="window.location.href='crypt.html'">CRYPT</button>
+    <button class="mobile-tab-btn" onclick="window.location.href='store.html'">Store</button>
+  </div>
+</nav>
+
+<!-- Gate: shown if not logged in -->
+<div id="gate-section" style="display:none">
+  <div class="page-content">
+    <div class="gate-wrap">
+      <p class="gate-title">YOU NEED A HANDLE TO VIEW THIS</p>
+      <button class="gate-btn" onclick="window.location.href='index.html'">GO TO THE KILLING FLOOR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile: shown when logged in -->
+<div id="profile-section" style="display:none">
+  <div class="page-content">
+
+    <!-- Header -->
+    <div class="profile-header">
+      <div class="profile-header-left">
+        <div class="profile-username" id="profile-username"></div>
+        <div class="profile-since" id="profile-since"></div>
+      </div>
+      <button class="logout-btn" onclick="logoutUser()">LOG OUT</button>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number" id="stat-ratings">—</div>
+        <div class="stat-label">Total Ratings</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="stat-comments">—</div>
+        <div class="stat-label">Total Comments</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="stat-days">—</div>
+        <div class="stat-label">Days Active</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="stat-avg">—</div>
+        <div class="stat-label">Avg Rating</div>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <div class="badges-section">
+      <div class="section-heading">YOUR BADGES</div>
+      <div class="badges-wrap" id="badges-wrap">
+        <span class="no-badges-msg">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Rating history -->
+    <div class="ratings-section">
+      <div class="section-heading">YOUR RATINGS</div>
+      <div id="ratings-list">
+        <div class="ratings-loading">LOADING...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://mfauodrizkxxsvdpuyzq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYXVvZHJpemt4eHN2ZHB1eXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjU3MTAsImV4cCI6MjA4ODY0MTcxMH0.WlWIc6X5Hggth8JmnqXJPv2KkF6hgYRQWeBOBmdvITs';
+const SB_HEADERS  = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' };
+
+const BADGES_DEF = [
+  { id: 'first_blood',    label: 'FIRST BLOOD',       check: (s) => s.totalRatings >= 1 },
+  { id: 'pit_regular',    label: 'PIT REGULAR',        check: (s) => s.totalComments >= 5 },
+  { id: 'skull_collector',label: 'SKULL COLLECTOR',    check: (s) => s.totalRatings >= 10 },
+  { id: 'veteran',        label: 'VETERAN',            check: (s) => s.daysActive >= 30 },
+  { id: 'obsessed',       label: 'OBSESSED',           check: (s) => s.totalRatings >= 30 },
+  { id: 'voice_of_pit',   label: 'VOICE OF THE PIT',  check: (s) => s.totalComments >= 20 },
+];
+
+function getUsername()  { return localStorage.getItem('slambeats_username'); }
+function getUserId()    { return localStorage.getItem('slambeats_uid'); }
+function getJoined()    { return localStorage.getItem('slambeats_joined'); }
+
+function logoutUser() {
+  localStorage.removeItem('slambeats_username');
+  localStorage.removeItem('slambeats_uid');
+  localStorage.removeItem('slambeats_joined');
+  window.location.href = 'index.html';
+}
+
+function formatDate(str) {
+  if (!str) return 'unknown';
+  const d = new Date(str);
+  if (isNaN(d)) return str;
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+function daysSince(str) {
+  if (!str) return 0;
+  const d = new Date(str);
+  if (isNaN(d)) return 0;
+  return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+}
+
+function skullStr(n) {
+  return '&#x2620;&#xFE0E;'.repeat(Math.max(0, Math.min(10, n)));
+}
+
+async function loadProfile() {
+  const username = getUsername();
+  const uid      = getUserId();
+  const joined   = getJoined();
+
+  // Tab/mobile user button
+  const tabBtn = document.getElementById('tab-user-btn');
+  if (tabBtn) tabBtn.textContent = username ? username.toUpperCase() : 'LOG IN';
+
+  if (!username || !uid) {
+    document.getElementById('gate-section').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('profile-section').style.display = 'block';
+
+  // Header
+  document.getElementById('profile-username').textContent = username.toUpperCase();
+  const days = daysSince(joined);
+  document.getElementById('profile-since').textContent = joined
+    ? `Member since ${formatDate(joined)}`
+    : 'Member of The Pit';
+  document.getElementById('stat-days').textContent = days;
+
+  // Fetch data
+  try {
+    const [ratingsRes, commentsCountRes] = await Promise.all([
+      fetch(
+        `${SUPABASE_URL}/rest/v1/ratings?user_id=eq.${encodeURIComponent(uid)}&select=date,album,artist,rating&order=date.desc&limit=50`,
+        { headers: SB_HEADERS }
+      ),
+      fetch(
+        `${SUPABASE_URL}/rest/v1/comments?user_id=eq.${encodeURIComponent(uid)}&select=id`,
+        { headers: { ...SB_HEADERS, 'Prefer': 'count=exact', 'Range': '0-0' } }
+      ),
+    ]);
+
+    const ratings = ratingsRes.ok ? await ratingsRes.json() : [];
+    const totalComments = parseInt(commentsCountRes.headers.get('content-range')?.split('/')[1] ?? '0', 10) || 0;
+    const totalRatings  = Array.isArray(ratings) ? ratings.length : 0;
+
+    // Stats
+    document.getElementById('stat-ratings').textContent  = totalRatings;
+    document.getElementById('stat-comments').textContent = totalComments;
+
+    // Average rating
+    if (totalRatings > 0) {
+      const avg = ratings.reduce((s, r) => s + (r.rating || 0), 0) / totalRatings;
+      document.getElementById('stat-avg').textContent = avg.toFixed(1);
+    } else {
+      document.getElementById('stat-avg').textContent = '—';
+    }
+
+    // Badges
+    const stats = { totalRatings, totalComments, daysActive: days };
+    const badgesWrap = document.getElementById('badges-wrap');
+    badgesWrap.innerHTML = BADGES_DEF.map(b => {
+      const earned = b.check(stats);
+      return `<span class="${earned ? 'badge-pill' : 'badge-locked'}">${b.label}</span>`;
+    }).join('');
+
+    // Rating history
+    const ratingsList = document.getElementById('ratings-list');
+    if (!Array.isArray(ratings) || ratings.length === 0) {
+      ratingsList.innerHTML = '<div class="ratings-empty">No ratings yet. Start on the Killing Floor.</div>';
+    } else {
+      ratingsList.innerHTML = ratings.map(r => {
+        const dateStr = r.date
+          ? new Date(r.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : '—';
+        const skulls  = skullStr(r.rating || 0);
+        const album   = (r.album  || 'Unknown Album').replace(/</g, '&lt;');
+        const artist  = (r.artist || '').replace(/</g, '&lt;');
+        return `<div class="rating-row">
+          <div class="rating-date">${dateStr}</div>
+          <div class="rating-album-info">
+            <div class="rating-album">${album}</div>
+            <div class="rating-artist">${artist}</div>
+          </div>
+          <div class="rating-skulls">${skulls}</div>
+        </div>`;
+      }).join('');
+    }
+  } catch (err) {
+    console.error('Profile load error:', err);
+    document.getElementById('ratings-list').innerHTML = '<div class="ratings-empty">Failed to load data.</div>';
+  }
+}
+
+loadProfile();
+</script>
+
+</body>
+</html>
