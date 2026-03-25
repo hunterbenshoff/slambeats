@@ -1339,6 +1339,39 @@
       .kf-spotify iframe { height: 80px !important; }
       .kf-spotify .section-label { margin-bottom: 2px; font-size: 9px; }
 
+      /* Spotify playlist embed */
+      .kf-playlist-wrap {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px 12px;
+      }
+      .follow-playlist-btn {
+        display: block;
+        text-align: center;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #1db954;
+        text-decoration: none;
+        padding: 6px 10px;
+        border: 1px solid rgba(29,185,84,0.3);
+        border-radius: 4px;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .follow-playlist-btn:hover {
+        background: rgba(29,185,84,0.12);
+        border-color: rgba(29,185,84,0.7);
+      }
+      .spotify-embed {
+        width: 100%;
+        height: 100px;
+        border-radius: 8px;
+        border: none;
+      }
+
       /* Spotify removed from artwork column */
     }
 
@@ -1432,6 +1465,18 @@
         </div>
 
       </div><!-- /kf-art-card -->
+
+      <!-- ── Spotify playlist embed + follow CTA ── -->
+      <div class="kf-playlist-wrap album-card">
+        <a class="follow-playlist-btn" href="https://open.spotify.com/playlist/4mZFXJ8NgaKQ01SxZBdAAX?si=73b77b3f08b141d5" target="_blank" rel="noopener">
+          FOLLOW THE PLAYLIST ↗
+        </a>
+        <iframe class="spotify-embed"
+          src="https://open.spotify.com/embed/playlist/4mZFXJ8NgaKQ01SxZBdAAX?utm_source=generator&theme=0"
+          frameborder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"></iframe>
+      </div><!-- /kf-playlist-wrap -->
 
     </div><!-- /kf-left -->
 
