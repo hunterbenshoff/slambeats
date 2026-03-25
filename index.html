@@ -1196,36 +1196,36 @@
       .album-header-text { text-align: right; }
       .album-meta { justify-content: flex-end; }
 
-      /* ── Right column: scrolls internally if content taller than viewport ── */
+      /* ── Right column: no scroll — only comments-list scrolls ── */
       .kf-right {
         display: flex;
         flex-direction: column;
         min-height: 0;
-        gap: 12px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(176,16,16,0.4) transparent;
+        overflow: hidden;
       }
-      .kf-right::-webkit-scrollbar { width: 4px; }
-      .kf-right::-webkit-scrollbar-track { background: transparent; }
-      .kf-right::-webkit-scrollbar-thumb { background: rgba(176,16,16,0.4); border-radius: 4px; }
 
       .kf-info-card {
-        flex-shrink: 0;
+        flex: 1 1 0;
+        min-height: 0;
         display: flex;
         flex-direction: column;
       }
-      .kf-info-card .metrics-wrap { margin-top: 8px; }
+      .kf-info-card .metrics-wrap { margin-top: 8px; flex-shrink: 0; }
       .kf-info-card .comments-wrap {
+        flex: 1 1 0;
+        min-height: 0;
         display: flex;
         flex-direction: column;
         margin-top: 8px;
       }
       #comments-list {
+        flex: 1 1 0;
+        min-height: 0;
         overflow-y: auto;
-        max-height: 180px;
+        max-height: none;
         padding-right: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(176,16,16,0.4) transparent;
       }
       #comments-list::-webkit-scrollbar { width: 4px; }
       #comments-list::-webkit-scrollbar-track { background: transparent; }
@@ -2725,16 +2725,25 @@ async function loadComments(date) {
             { headers: SB_HEADERS }
         );
         const data = await res.json();
+        if (!data.length) { renderComments(data, {}, date); return; }
+
+        const ids = data.map(c => c.id);
         const userIds = [...new Set(data.map(c => c.user_id))];
-        let usernameMap = {};
-        if (userIds.length > 0) {
-            const uRes = await fetch(
-                `${SUPABASE_URL}/rest/v1/users?user_id=in.(${userIds.join(',')})&select=user_id,username`,
-                { headers: SB_HEADERS }
-            );
-            const uData = await uRes.json();
-            uData.forEach(u => { usernameMap[u.user_id] = u.username; });
-        }
+
+        const [uRes, vRes] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/users?user_id=in.(${userIds.join(',')})&select=user_id,username`, { headers: SB_HEADERS }),
+            fetch(`${SUPABASE_URL}/rest/v1/comment_votes?comment_id=in.(${ids.join(',')})&select=comment_id`, { headers: SB_HEADERS })
+        ]);
+        const usernameMap = {};
+        (await uRes.json()).forEach(u => { usernameMap[u.user_id] = u.username; });
+
+        // tally votes per comment
+        const voteCounts = {};
+        (await vRes.json()).forEach(v => { voteCounts[v.comment_id] = (voteCounts[v.comment_id] || 0) + 1; });
+
+        // sort: most votes first, then chronological
+        data.sort((a, b) => (voteCounts[b.id] || 0) - (voteCounts[a.id] || 0) || new Date(a.created_at) - new Date(b.created_at));
+
         renderComments(data, usernameMap, date);
     } catch(e) { console.error(e); }
 }
