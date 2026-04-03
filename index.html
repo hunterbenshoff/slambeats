@@ -338,8 +338,24 @@
     .artwork-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .artwork-placeholder {
       width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 80px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; padding: 24px; text-align: center;
+    }
+    .artwork-placeholder .ph-skull { font-size: 56px; opacity: 0.3; }
+    .artwork-placeholder .ph-title {
+      font-family: 'Nosifer', cursive;
+      font-size: clamp(13px, 2.2vw, 22px);
+      color: rgba(176,50,50,0.6);
+      letter-spacing: 1px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .artwork-placeholder .ph-artist {
+      font-size: clamp(11px, 1.5vw, 15px);
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(240,230,211,0.25);
     }
     .spotify-badge {
       position: absolute; bottom: 10px; right: 10px;
@@ -1193,7 +1209,7 @@
         margin-bottom: 0;
       }
       .kf-art-card .artwork-wrap img { object-fit: contain; background: #0a0306; }
-      .kf-art-card .artwork-wrap .artwork-placeholder { font-size: 100px; }
+      .kf-art-card .artwork-wrap .artwork-placeholder { font-size: inherit; }
 
       /* Album info: right-aligned in the card */
       .album-header-text { text-align: right; }
@@ -1283,12 +1299,13 @@
         display: flex; flex-direction: column;
       }
 
-      /* Metrics — 4 cols × 2 rows, baseline sizes */
-      .metrics-wrap .section-label { margin-bottom: 8px; font-size: 10px; }
-      .metrics-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 0; }
-      .metric-card   { padding: 14px; border-radius: 10px; }
-      .metric-number { font-size: 28px; }
-      .metric-label  { font-size: 10px; margin-top: 4px; letter-spacing: 1.5px; }
+      /* Metrics — 4 cols × 2 rows, constrained so album info has room */
+      .kf-info-top-row .metrics-wrap { flex: 0 0 auto; max-width: 58%; }
+      .metrics-wrap .section-label { margin-bottom: 6px; font-size: 10px; }
+      .metrics-grid { grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 0; }
+      .metric-card   { padding: 10px 8px; border-radius: 8px; }
+      .metric-number { font-size: 22px; }
+      .metric-label  { font-size: 9px; margin-top: 3px; letter-spacing: 1px; }
 
       /* Rating — right-aligned, light bar in right column only */
       .rating-section   {
@@ -1424,7 +1441,11 @@
       <div class="album-card kf-art-card">
 
         <div class="artwork-wrap" onclick="artworkClick()" title="Click to listen">
-          <div class="artwork-placeholder" id="artwork-placeholder">🎵</div>
+          <div class="artwork-placeholder" id="artwork-placeholder">
+            <span class="ph-skull">💀</span>
+            <span class="ph-title" id="ph-title"></span>
+            <span class="ph-artist" id="ph-artist"></span>
+          </div>
           <img id="artwork-img" style="display:none" alt="Album artwork">
         </div>
 
@@ -2165,21 +2186,22 @@ async function fetchArtwork(album, artist) {
 
     const albumLower  = album.toLowerCase();
     const artistLower = artist.toLowerCase();
+    const artistFirst = artistLower.split(' ')[0];
 
-    // 1. Try iTunes — strict match only (artist must match)
+    // 1. iTunes — try album+artist, then artist-only with album match
     try {
-        const q = encodeURIComponent(`${album} ${artist}`);
-        const res = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=10`);
-        const data = await res.json();
-        if (data.results && data.results.length > 0) {
+        for (const query of [`${album} ${artist}`, artist]) {
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=25`);
+            const data = await res.json();
+            const results = data.results || [];
             const match =
-                data.results.find(r =>
+                results.find(r =>
                     r.collectionName?.toLowerCase() === albumLower &&
-                    r.artistName?.toLowerCase().includes(artistLower.split(' ')[0])
+                    r.artistName?.toLowerCase().includes(artistFirst)
                 ) ||
-                data.results.find(r =>
+                results.find(r =>
                     r.collectionName?.toLowerCase().includes(albumLower) &&
-                    r.artistName?.toLowerCase().includes(artistLower.split(' ')[0])
+                    r.artistName?.toLowerCase().includes(artistFirst)
                 );
             if (match?.artworkUrl100) {
                 const url = match.artworkUrl100.replace('100x100bb', '600x600bb');
@@ -2189,16 +2211,18 @@ async function fetchArtwork(album, artist) {
         }
     } catch (e) {}
 
-    // 2. MusicBrainz + Cover Art Archive fallback
+    // 2. MusicBrainz release-group + Cover Art Archive
     try {
         const mbRes = await fetch(
-            `https://musicbrainz.org/ws/2/release-group?query=artist:"${encodeURIComponent(artist)}" AND releasegroup:"${encodeURIComponent(album)}"&fmt=json&limit=5`,
+            `https://musicbrainz.org/ws/2/release-group?query=${encodeURIComponent(artist + ' ' + album)}&fmt=json&limit=10`,
             { headers: { 'User-Agent': 'slambeatsdotkill/1.0 (slambeatsdotkill.com)' } }
         );
         const mbData = await mbRes.json();
-        if (mbData['release-groups'] && mbData['release-groups'].length > 0) {
-            const mbid = mbData['release-groups'][0].id;
-            const caaRes = await fetch(`https://coverartarchive.org/release-group/${mbid}/front-500`);
+        const groups = (mbData['release-groups'] || []).filter(g =>
+            g['artist-credit']?.[0]?.artist?.name?.toLowerCase().includes(artistFirst)
+        );
+        for (const g of groups) {
+            const caaRes = await fetch(`https://coverartarchive.org/release-group/${g.id}/front-500`, { redirect: 'follow' });
             if (caaRes.ok) {
                 localStorage.setItem(cacheKey, caaRes.url);
                 return caaRes.url;
@@ -3213,6 +3237,12 @@ async function init() {
     document.getElementById('album-artist').textContent = artist;
     document.getElementById('album-genre').textContent  = genre;
     document.getElementById('album-year').textContent   = year;
+
+    // Placeholder text (shown if artwork fails to load)
+    const phTitle = document.getElementById('ph-title');
+    const phArtist = document.getElementById('ph-artist');
+    if (phTitle) phTitle.textContent = album;
+    if (phArtist) phArtist.textContent = artist;
 
     // Artwork
     const artUrl = await fetchArtwork(album, artist);
