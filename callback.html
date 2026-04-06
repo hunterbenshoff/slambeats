@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head><title>Auth</title></head>
+<body>
+<p id="msg">Capturing auth code...</p>
+<script>
+const code = new URLSearchParams(window.location.search).get('code');
+const error = new URLSearchParams(window.location.search).get('error');
+if (code) {
+  document.getElementById('msg').innerHTML = '<strong>Your auth code:</strong><br><br><code style="word-break:break-all;font-size:13px">' + code + '</code><br><br>Copy everything above and paste it back into Claude.';
+} else if (error) {
+  document.getElementById('msg').textContent = 'Error: ' + error;
+} else {
+  document.getElementById('msg').textContent = 'No code found in URL.';
+}
+</script>
+</body>
+</html>
